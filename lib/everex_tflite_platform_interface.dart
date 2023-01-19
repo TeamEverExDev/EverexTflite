@@ -41,4 +41,8 @@ abstract class EverexTflitePlatform extends PlatformInterface {
   Future<List<double>?> outPut() {
     throw UnimplementedError('outPut() has not been implemented.');
   }
+
+  Future<bool?> close() {
+    throw UnimplementedError('close() has not been implemented.');
+  }
 }

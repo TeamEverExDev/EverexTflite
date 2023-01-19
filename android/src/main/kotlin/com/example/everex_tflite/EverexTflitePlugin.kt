@@ -148,6 +148,17 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             "checkInitialize" -> {
                 result.success(isInitialized)
             }
+            "close" -> {
+                isInitialized = false
+                interpreter!!.close()
+                Timber.d("Closing TFLite interpreter...")
+                if (gpuDelegate != null) {
+                    gpuDelegate!!.close()
+                    gpuDelegate = null
+                }
+                Timber.d("Closed TFLite interpreter.")
+                result.success(true)
+            }
             else -> {
                 result.notImplemented()
             }
@@ -155,14 +166,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        isInitialized = false
-        interpreter!!.close()
-        Timber.d("Closing TFLite interpreter...")
-        if (gpuDelegate != null) {
-            gpuDelegate!!.close()
-            gpuDelegate = null
-        }
-        Timber.d("Closed TFLite interpreter.")
         channel.setMethodCallHandler(null)
     }
 

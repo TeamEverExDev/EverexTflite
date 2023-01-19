@@ -28,6 +28,12 @@ class MockEverexTflitePlatform
   }) {
     return Future.value(true);
   }
+
+  @override
+  Future<bool?> close() {
+    // TODO: implement close
+    throw UnimplementedError();
+  }
 }
 
 void main() {

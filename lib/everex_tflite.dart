@@ -23,4 +23,8 @@ class EverexTflite {
   static Future<List<double>?> outPut() {
     return EverexTflitePlatform.instance.outPut();
   }
+
+  static Future<bool?> close() {
+    return EverexTflitePlatform.instance.close();
+  }
 }
