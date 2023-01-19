@@ -31,8 +31,8 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
   }
 
   @override
-  Future<List<int>?> outPut() async {
-    List<int>? k = await methodChannel.invokeMethod("outPut");
+  Future<List<double>?> outPut() async {
+    List<double>? k = await methodChannel.invokeMethod("outPut");
     return k;
   }
 }

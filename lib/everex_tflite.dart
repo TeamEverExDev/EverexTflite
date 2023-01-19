@@ -20,7 +20,7 @@ class EverexTflite {
         rotation: rotation);
   }
 
-  static Future<List<int>?> outPut() {
+  static Future<List<double>?> outPut() {
     return EverexTflitePlatform.instance.outPut();
   }
 }

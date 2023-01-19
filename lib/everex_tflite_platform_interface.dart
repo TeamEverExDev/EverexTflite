@@ -38,7 +38,7 @@ abstract class EverexTflitePlatform extends PlatformInterface {
     throw UnimplementedError('runModel() has not been implemented.');
   }
 
-  Future<List<int>?> outPut() {
+  Future<List<double>?> outPut() {
     throw UnimplementedError('outPut() has not been implemented.');
   }
 }

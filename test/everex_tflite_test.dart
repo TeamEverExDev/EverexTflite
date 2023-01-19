@@ -15,7 +15,7 @@ class MockEverexTflitePlatform
   }
 
   @override
-  Future<List<int>?> outPut() {
+  Future<List<double>?> outPut() {
     return Future.value([1, 2]);
   }
 
