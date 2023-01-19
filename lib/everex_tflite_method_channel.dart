@@ -10,8 +10,8 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
   final methodChannel = const MethodChannel('everex_tflite');
 
   @override
-  Future<void> loadModel() async {
-    await methodChannel.invokeMethod('loadModel');
+  Future<void> loadModel(String fileName) async {
+    await methodChannel.invokeMethod('loadModel', fileName);
   }
 
   @override

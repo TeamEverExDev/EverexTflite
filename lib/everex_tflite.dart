@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'everex_tflite_platform_interface.dart';
 
 class EverexTflite {
-  static Future<void> loadModel() async {
-    await EverexTflitePlatform.instance.loadModel();
+  static Future<void> loadModel(String fileName) async {
+    await EverexTflitePlatform.instance.loadModel(fileName);
   }
 
   static Future<bool?> runModel({

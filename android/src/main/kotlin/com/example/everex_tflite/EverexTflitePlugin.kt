@@ -60,9 +60,10 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         when (call.method) {
             "loadModel" -> {
                 //loadModel
+                var fileName = call.arguments
                 val loadModelMethod = LoadModelMethod()
                 val assetManager: AssetManager = context.assets
-                val model = loadModelMethod.loadModelFile(assetManager, "everex.tflite")
+                val model = loadModelMethod.loadModelFile(assetManager, fileName)
 
                 //init interpreter
                 val options = Interpreter.Options()

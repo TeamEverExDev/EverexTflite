@@ -25,7 +25,7 @@ abstract class EverexTflitePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> loadModel() {
+  Future<void> loadModel(String fileName) {
     throw UnimplementedError('loadModel() has not been implemented.');
   }
 

@@ -10,11 +10,6 @@ class MockEverexTflitePlatform
     with MockPlatformInterfaceMixin
     implements EverexTflitePlatform {
   @override
-  Future<String?> loadModel() {
-    return Future.value('42');
-  }
-
-  @override
   Future<List<double>?> outPut() {
     return Future.value([1, 2]);
   }
@@ -32,6 +27,11 @@ class MockEverexTflitePlatform
   @override
   Future<bool?> close() {
     // TODO: implement close
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> loadModel(String fileName) {
     throw UnimplementedError();
   }
 }
