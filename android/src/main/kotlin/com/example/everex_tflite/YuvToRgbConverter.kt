@@ -25,9 +25,7 @@ import androidx.annotation.RequiresApi
 class YuvToRgbConverter(context: Context) {
     private val rs = RenderScript.create(context)
     private val scriptYuvToRgb = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs))
-
     private var pixelCount: Int = -1
-    private lateinit var yuvBuffer: ByteArray
     private lateinit var inputAllocation: Allocation
     private lateinit var outputAllocation: Allocation
 

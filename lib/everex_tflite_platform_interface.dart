@@ -30,7 +30,8 @@ abstract class EverexTflitePlatform extends PlatformInterface {
   }
 
   Future<bool?> runModel({
-    required Uint8List bytesList,
+    required List<Uint8List> bytesList,
+    required List<int> strides,
     int imageHeight = 0,
     int imageWidth = 0,
     int rotation = 0, // Android only

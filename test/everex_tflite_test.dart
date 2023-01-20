@@ -16,7 +16,8 @@ class MockEverexTflitePlatform
 
   @override
   Future<bool?> runModel({
-    required Uint8List bytesList,
+    required List<Uint8List> bytesList,
+    required List<int> strides,
     int imageHeight = 1280,
     int imageWidth = 720,
     int rotation = 90, // Android only

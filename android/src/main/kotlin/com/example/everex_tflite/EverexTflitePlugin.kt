@@ -3,7 +3,9 @@ package com.example.everex_tflite
 import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
+import android.graphics.BitmapFactory
+import android.os.Environment
+import android.os.Environment.DIRECTORY_DCIM
 import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
@@ -22,6 +24,9 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.image.ops.Rot90Op
 import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 /** EverexTflitePlugin */
 class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
@@ -52,6 +57,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
     private val poseEstimationUtil: PoseEstimationUtil = PoseEstimationUtil()
 
+    var createImage1: Boolean = false
+    var createImage2: Boolean = false
+    var createImage3: Boolean = false
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "everex_tflite")
@@ -104,16 +112,17 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             "runModel" -> {
                 check(isInitialized) { "TF Lite Interpreter is not initialized yet." }
                 var arg: HashMap<*, *> = call.arguments as HashMap<*, *>
-                var byteArray: ByteArray = arg.get("bytesList") as ByteArray
-
-
+                var byteArray: List<ByteArray> = arg.get("bytesList") as List<ByteArray>
+                var strides: IntArray = arg.get("strides") as IntArray
                 var bitmap: Bitmap = Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888)
-                val hflipmatrix = Matrix().apply { postScale(1.0F, -1.0F) }
+                var k: ByteArray = YuvConverter.YUVtoNV21(byteArray, strides, 240, 320)
 
-                converter!!.yuvToRgb(
-                    byteArray,
-                    bitmap
-                )
+
+                if (!createImage1) {
+                    createImage1 = true;
+                    bitmapToFile(BitmapFactory.decodeByteArray(k, 0, k.size), "before_run")
+                }
+
 
                 inputImageBuffer!!.load(bitmap)
 
@@ -131,12 +140,17 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 val byteBuffer = inputImageBuffer!!.buffer
 
-
                 val startTime = SystemClock.uptimeMillis()
+
+                if (!createImage2) {
+                    createImage2 = true;
+                    bitmapToFile(bitmap, "after_run")
+                }
+
                 interpreter?.run(byteBuffer, heatmapOutput)
 
                 // heatmap smoothing
-                poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
+                //poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
                 positions =
                     poseEstimationUtil.getJointPositions(heatmapOutput, outputHeight, outputWidth)
@@ -199,6 +213,26 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             )
             .build()
     }
+}
+
+private fun bitmapToFile(bitmap: Bitmap, fileName: String): File {
+    var out: OutputStream? = null
+
+    val file =
+        File("${Environment.getExternalStoragePublicDirectory(DIRECTORY_DCIM)}/everex/$fileName.jpg")
+    try {
+        file.parentFile.mkdirs()
+        Log.i("bitmapToFile", "Path : " + "qa.jpg")
+        if (file.isFile) {
+            file.delete()
+        }
+        file.createNewFile()
+        out = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+    } finally {
+        out?.close()
+    }
+    return file
 }
 
 
