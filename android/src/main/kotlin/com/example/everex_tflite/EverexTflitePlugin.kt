@@ -3,6 +3,7 @@ package com.example.everex_tflite
 import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
@@ -107,6 +108,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
 
                 var bitmap: Bitmap = Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888)
+                val hflipmatrix = Matrix().apply { postScale(1.0F, -1.0F) }
+
                 converter!!.yuvToRgb(
                     byteArray,
                     bitmap
@@ -125,7 +128,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         error("incorrect rotation value")
                     }
                 }
-                
+
                 val byteBuffer = inputImageBuffer!!.buffer
 
 
