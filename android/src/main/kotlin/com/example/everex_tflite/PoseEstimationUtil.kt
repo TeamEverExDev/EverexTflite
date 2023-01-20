@@ -26,7 +26,7 @@ class PoseEstimationUtil {
                 }
             }
 
-            if (max > 50.0f) {  // 일정 score 이하의 관절 위치는 사용하지 않음
+            if (max > 0.0f) {  // 일정 score 이하의 관절 위치는 사용하지 않음
                 var maxXf = maxX.toFloat()
                 var maxYf = maxY.toFloat()
 

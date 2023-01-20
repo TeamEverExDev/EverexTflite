@@ -114,7 +114,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 inputImageBuffer!!.load(bitmap)
 
-                var rotation = call.arguments
+                var rotation = 0
+
                 inputImageBuffer = when (rotation) {
                     Surface.ROTATION_0 -> imageprocessorRot0!!.process(inputImageBuffer)
                     Surface.ROTATION_90 -> imageprocessorRot90!!.process(inputImageBuffer)
@@ -124,7 +125,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         error("incorrect rotation value")
                     }
                 }
-
+                
                 val byteBuffer = inputImageBuffer!!.buffer
 
 
@@ -135,7 +136,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
                 positions =
-                    poseEstimationUtil.getJointPositions(heatmapOutput, outputWidth, outputHeight)
+                    poseEstimationUtil.getJointPositions(heatmapOutput, outputHeight, outputWidth)
 
                 val endTime = SystemClock.uptimeMillis()
                 val elapsedTime = endTime - startTime
