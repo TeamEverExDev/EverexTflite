@@ -114,13 +114,27 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 var arg: HashMap<*, *> = call.arguments as HashMap<*, *>
                 var byteArray: List<ByteArray> = arg.get("bytesList") as List<ByteArray>
                 var strides: IntArray = arg.get("strides") as IntArray
-                var bitmap: Bitmap = Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888)
-                var k: ByteArray = YuvConverter.YUVtoNV21(byteArray, strides, 240, 320)
+                var bitmap: Bitmap = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
+
+                Log.d("bytearray", byteArray[0].size.toString())
+                Log.d("bytearray", byteArray[1].size.toString())
+                Log.d("bytearray", byteArray[2].size.toString())
+                Log.d("strides", strides.toString())
+
+                var data = YuvConverter.NV21toJPEG(
+                    YuvConverter.YUVtoNV21(
+                        byteArray,
+                        strides,
+                        320,
+                        240
+                    ), 320, 240, 100
+                )
+
 
 
                 if (!createImage1) {
                     createImage1 = true;
-                    bitmapToFile(BitmapFactory.decodeByteArray(k, 0, k.size), "before_run")
+                    bitmapToFile(BitmapFactory.decodeByteArray(data, 0, data.size), "before_run")
                 }
 
 
