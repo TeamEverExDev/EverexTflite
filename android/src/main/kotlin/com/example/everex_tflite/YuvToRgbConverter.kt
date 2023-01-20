@@ -33,20 +33,7 @@ class YuvToRgbConverter(context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     @Synchronized
-    fun yuvToRgb(image: Image, output: Bitmap) {
-        // Ensure that the intermediate output byte buffer is allocated
-        if (!::yuvBuffer.isInitialized) {
-            pixelCount = image.width * image.height
-            // Bits per pixel is an average for the whole image, so it's useful to compute the size
-            // of the full buffer but should not be used to determine pixel offsets
-            val pixelSizeBits = ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888)
-            yuvBuffer = ByteArray(pixelCount * pixelSizeBits / 8)
-        }
-
-        // Get the YUV data in byte array form using NV21 format
-        imageToByteArray(image, yuvBuffer)
-
-        // Ensure that the RenderScript inputs and outputs are allocated
+    fun yuvToRgb(yuvBuffer: ByteArray, output: Bitmap) {
         if (!::inputAllocation.isInitialized) {
             // Explicitly create an element with type NV21, since that's the pixel format we use
             val elemType = Type.Builder(rs, Element.YUV(rs)).setYuvFormat(ImageFormat.NV21).create()

@@ -1,10 +1,10 @@
 package com.example.everex_tflite
 
-
 import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.util.Log
 import android.view.Surface
 import androidx.annotation.NonNull
 import io.flutter.BuildConfig
@@ -21,7 +21,6 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 import org.tensorflow.lite.support.image.ops.Rot90Op
 import timber.log.Timber
-import java.nio.ByteBuffer
 
 /** EverexTflitePlugin */
 class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
@@ -29,6 +28,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
     var isInitialized = false
     private lateinit var context: Context
+    private lateinit var flutterAsset: FlutterPlugin.FlutterAssets
     private var interpreter: Interpreter? = null
     private var gpuDelegate: GpuDelegate? = null
     private var inputImageWidth: Int = 0
@@ -39,7 +39,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var heatmapOutput: Array<Array<Array<FloatArray>>>
     private lateinit var prevHeatmap: Array<Array<FloatArray>>
 
-    private val positions = FloatArray(17 * 2)
+    private var positions = FloatArray(17 * 2)
+
+    var converter: YuvToRgbConverter? = null
 
     private var inputImageBuffer: TensorImage? = null
     private var imageprocessorRot0: ImageProcessor? = null
@@ -54,6 +56,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "everex_tflite")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
+        flutterAsset = flutterPluginBinding.flutterAssets
+        converter = YuvToRgbConverter(context)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -63,13 +67,16 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 var fileName = call.arguments as String
                 val loadModelMethod = LoadModelMethod()
                 val assetManager: AssetManager = context.assets
-                val model = loadModelMethod.loadModelFile(assetManager, fileName)
-
+                Log.d("asset", flutterAsset.getAssetFilePathBySubpath(fileName))
+                val model = loadModelMethod.loadModelFile(
+                    assetManager,
+                    flutterAsset.getAssetFilePathBySubpath(fileName)
+                )
                 //init interpreter
                 val options = Interpreter.Options()
-                gpuDelegate = GpuDelegate()
+//                gpuDelegate = GpuDelegate()
+//                options.addDelegate(gpuDelegate)
                 var interpreter = Interpreter(model, options)
-
                 var inputShape = interpreter!!.getInputTensor(0).shape()
                 val inputDataType = interpreter!!.getInputTensor(0).dataType()
                 inputImageWidth = inputShape[2]
@@ -95,12 +102,14 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             }
             "runModel" -> {
                 check(isInitialized) { "TF Lite Interpreter is not initialized yet." }
-                var byteList: ByteBuffer? = call.arguments() as ByteBuffer?
+                var arg: HashMap<*, *> = call.arguments as HashMap<*, *>
+                var byteArray: ByteArray = arg.get("bytesList") as ByteArray
 
-                var bitmap: Bitmap = poseEstimationUtil.unNormalizeImage(
-                    byteList!!,
-                    inputImageWidth,
-                    inputImageHeight
+
+                var bitmap: Bitmap = Bitmap.createBitmap(240, 320, Bitmap.Config.ARGB_8888)
+                converter!!.yuvToRgb(
+                    byteArray,
+                    bitmap
                 )
 
                 inputImageBuffer!!.load(bitmap)
@@ -125,25 +134,23 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 // heatmap smoothing
                 poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
-                poseEstimationUtil.getJointPositions(heatmapOutput, outputWidth, outputHeight)
+                positions =
+                    poseEstimationUtil.getJointPositions(heatmapOutput, outputWidth, outputHeight)
 
                 val endTime = SystemClock.uptimeMillis()
                 val elapsedTime = endTime - startTime
 
                 if (BuildConfig.DEBUG) {
-                    val debugBitmap = poseEstimationUtil.unNormalizeImage(
-                        byteBuffer,
-                        inputImageWidth,
-                        inputImageHeight
-                    )
-                    Triple(positions, elapsedTime, debugBitmap)
+                    Triple(positions, elapsedTime, null)
                 } else {
                     Triple(positions, elapsedTime, null)
                 }
 
+                Log.d("runModel", "true")
                 result.success(true)
             }
-            "outPutReturn" -> {
+            "outPut" -> {
+                Log.d("outPut", "true")
                 result.success(positions)
             }
             "checkInitialize" -> {

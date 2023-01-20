@@ -1,8 +1,5 @@
 package com.example.everex_tflite
 
-import android.graphics.Bitmap
-import java.nio.ByteBuffer
-
 class PoseEstimationUtil {
     fun getJointPositions(
         heatmap: Array<Array<Array<FloatArray>>>,
@@ -78,23 +75,5 @@ class PoseEstimationUtil {
         }
         return heatmap;
     }
-
-    fun unNormalizeImage(buffer: ByteBuffer, width: Int, height: Int): Bitmap {
-        buffer.rewind()
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val pixels = IntArray(width * height) // Set your expected output's height and width
-        for (i in 0 until width * height) {
-            val a = 0xFF
-            val r: Float = buffer.float
-            val g: Float = buffer.float
-            val b: Float = buffer.float
-            pixels[i] =
-                a shl 24 or ((r + IMAGE_MEAN_R).toInt() shl 16) or ((g + IMAGE_MEAN_G).toInt() shl 8) or (b + IMAGE_MEAN_B).toInt()
-        }
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-
-        return bitmap
-    }
-
 
 }

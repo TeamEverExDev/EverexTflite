@@ -16,7 +16,7 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
 
   @override
   Future<bool?> runModel({
-    required List<Uint8List> bytesList,
+    required Uint8List bytesList,
     int imageHeight = 1280,
     int imageWidth = 720,
     int rotation = 90, // Android only
