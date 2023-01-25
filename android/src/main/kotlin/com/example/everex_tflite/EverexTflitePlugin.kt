@@ -116,11 +116,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 var strides: IntArray = arg.get("strides") as IntArray
                 var bitmap: Bitmap = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
 
-                Log.d("bytearray", byteArray[0].size.toString())
-                Log.d("bytearray", byteArray[1].size.toString())
-                Log.d("bytearray", byteArray[2].size.toString())
-                Log.d("strides", strides.toString())
-
                 var data = YuvConverter.NV21toJPEG(
                     YuvConverter.YUVtoNV21(
                         byteArray,
@@ -131,16 +126,16 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 )
 
 
-
+                var decodeBitmap: Bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
                 if (!createImage1) {
                     createImage1 = true;
                     bitmapToFile(BitmapFactory.decodeByteArray(data, 0, data.size), "before_run")
                 }
 
 
-                inputImageBuffer!!.load(bitmap)
+                inputImageBuffer!!.load(decodeBitmap)
 
-                var rotation = 0
+                var rotation = 3
 
                 inputImageBuffer = when (rotation) {
                     Surface.ROTATION_0 -> imageprocessorRot0!!.process(inputImageBuffer)
@@ -158,7 +153,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 if (!createImage2) {
                     createImage2 = true;
-                    bitmapToFile(bitmap, "after_run")
+                    bitmapToFile(
+                        inputImageBuffer!!.bitmap, "after_run"
+                    )
                 }
 
                 interpreter?.run(byteBuffer, heatmapOutput)
@@ -178,11 +175,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     Triple(positions, elapsedTime, null)
                 }
 
-                Log.d("runModel", "true")
                 result.success(true)
             }
             "outPut" -> {
-                Log.d("outPut", "true")
                 result.success(positions)
             }
             "checkInitialize" -> {
@@ -236,7 +231,6 @@ private fun bitmapToFile(bitmap: Bitmap, fileName: String): File {
         File("${Environment.getExternalStoragePublicDirectory(DIRECTORY_DCIM)}/everex/$fileName.jpg")
     try {
         file.parentFile.mkdirs()
-        Log.i("bitmapToFile", "Path : " + "qa.jpg")
         if (file.isFile) {
             file.delete()
         }
