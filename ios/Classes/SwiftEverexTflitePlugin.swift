@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 
+
 public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "everex_tflite", binaryMessenger: registrar.messenger())
@@ -9,6 +10,20 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
+    
+      switch call.method {
+      case "loadModel":
+          result(true)
+      case "runModel":
+           result(true)
+      case "outPut":
+            result("outPut")
+      case "checkInitialize":
+            result("checkInitialize")
+      case "close":
+            result("close")
+      default:
+          result("default")
+      }
   }
 }
