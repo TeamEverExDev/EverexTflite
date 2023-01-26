@@ -133,7 +133,11 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 var decodeBitmap: Bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
                 if (!createImage1) {
                     createImage1 = true;
-                    bitmapToFile(BitmapFactory.decodeByteArray(data, 0, data.size), "before_run")
+                    bitmapToFile(
+                        BitmapFactory.decodeByteArray(data, 0, data.size),
+                        "before_run",
+                        context
+                    )
                 }
 
 
@@ -158,7 +162,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 if (!createImage2) {
                     createImage2 = true;
                     bitmapToFile(
-                        inputImageBuffer!!.bitmap, "after_run"
+                        inputImageBuffer!!.bitmap, "after_run", context
                     )
                 }
 
@@ -168,7 +172,12 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 //poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
                 positions =
-                    poseEstimationUtil.getJointPositions(heatmapOutput, outputHeight, outputWidth, numJoints)
+                    poseEstimationUtil.getJointPositions(
+                        heatmapOutput,
+                        outputHeight,
+                        outputWidth,
+                        numJoints
+                    )
 
                 val endTime = SystemClock.uptimeMillis()
                 val elapsedTime = endTime - startTime
@@ -228,11 +237,11 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     }
 }
 
-private fun bitmapToFile(bitmap: Bitmap, fileName: String): File {
+private fun bitmapToFile(bitmap: Bitmap, fileName: String, context: Context): File {
     var out: OutputStream? = null
 
     val file =
-        File("${Environment.getExternalStoragePublicDirectory(DIRECTORY_DCIM)}/everex/$fileName.jpg")
+        File("${context.getExternalFilesDir(DIRECTORY_DCIM)}/everex/$fileName.jpg")
     try {
         file.parentFile.mkdirs()
         if (file.isFile) {
