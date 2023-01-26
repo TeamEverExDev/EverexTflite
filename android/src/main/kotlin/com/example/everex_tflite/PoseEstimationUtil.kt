@@ -4,16 +4,17 @@ class PoseEstimationUtil {
     fun getJointPositions(
         heatmap: Array<Array<Array<FloatArray>>>,
         outputHeight: Int,
-        outputWidth: Int
+        outputWidth: Int,
+        numJoints :Int
     ): FloatArray {
-        val positions = FloatArray(17 * 2)
+
+        val positions = FloatArray(numJoints * 2)
 
         // 각 조인트별 Heatmap 에서 가장 높은 score를 가지는 x, y 좌표 선택
-        for (i in 0..16) {
+        for (i in 0 until numJoints) {
             var maxX = 0
             var maxY = 0
-            var max = 0f
-
+            var max = 50f
             // find keypoint coordinate through maximum values
             for (x in 0 until outputWidth) {
                 for (y in 0 until outputHeight) {
@@ -25,8 +26,6 @@ class PoseEstimationUtil {
                     }
                 }
             }
-
-            if (max > 0.0f) {  // 일정 score 이하의 관절 위치는 사용하지 않음
                 var maxXf = maxX.toFloat()
                 var maxYf = maxY.toFloat()
 
@@ -47,16 +46,9 @@ class PoseEstimationUtil {
                         maxXf -= 0.25f
                     }
                 }
-
                 positions[i * 2 + 0] = maxXf
                 positions[i * 2 + 1] = maxYf
-            } else {
-                // 일정 score 이하의 조인트는 좌표값으로 -1 사용 (Display 시 보이지 않도록 함)
-                positions[i * 2 + 0] = -1.0f
-                positions[i * 2 + 1] = -1.0f
             }
-        }
-
         return positions
     }
 

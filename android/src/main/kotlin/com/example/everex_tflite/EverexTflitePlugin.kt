@@ -44,8 +44,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var outputHeight: Int = 0
     private lateinit var heatmapOutput: Array<Array<Array<FloatArray>>>
     private lateinit var prevHeatmap: Array<Array<FloatArray>>
-
-    private var positions = FloatArray(17 * 2)
+    var numJoints: Int = 0
+    private var positions = FloatArray(numJoints * 2)
 
     var converter: YuvToRgbConverter? = null
 
@@ -87,16 +87,20 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 //                options.addDelegate(gpuDelegate)
                 var interpreter = Interpreter(model, options)
                 var inputShape = interpreter!!.getInputTensor(0).shape()
+                var outputShape = interpreter!!.getOutputTensor(0).shape()
                 val inputDataType = interpreter!!.getInputTensor(0).dataType()
-                inputImageWidth = inputShape[2]
                 inputImageHeight = inputShape[1]
+                inputImageWidth = inputShape[2]
+
+
                 modelInputSize = FLOAT_TYPE_SIZE * inputImageWidth * inputImageHeight * CHANNEL_SIZE
 
-                outputHeight = inputImageHeight / 4
-                outputWidth = inputImageWidth / 4
-                prevHeatmap = Array(outputHeight) { Array(outputWidth) { FloatArray(17) } }
+                outputHeight = outputShape[1]
+                outputWidth = outputShape[2]
+                numJoints = outputShape[3]
+                prevHeatmap = Array(outputHeight) { Array(outputWidth) { FloatArray(numJoints) } }
                 heatmapOutput =
-                    Array(1) { Array(outputHeight) { Array(outputWidth) { FloatArray(17) } } }
+                    Array(1) { Array(outputHeight) { Array(outputWidth) { FloatArray(numJoints) } } }
 
                 this.interpreter = interpreter
 
@@ -164,7 +168,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 //poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
                 positions =
-                    poseEstimationUtil.getJointPositions(heatmapOutput, outputHeight, outputWidth)
+                    poseEstimationUtil.getJointPositions(heatmapOutput, outputHeight, outputWidth, numJoints)
 
                 val endTime = SystemClock.uptimeMillis()
                 val elapsedTime = endTime - startTime
