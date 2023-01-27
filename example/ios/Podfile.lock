@@ -1,15 +1,24 @@
 PODS:
   - everex_tflite (0.0.1):
     - Flutter
-    - TensorFlowLiteSwift (~> 2.11)
+    - TensorFlowLiteSwift/CoreML (~> 2.11)
+    - TensorFlowLiteSwift/Metal (~> 2.11)
   - Flutter (1.0.0)
   - TensorFlowLiteC (2.11.0):
     - TensorFlowLiteC/Core (= 2.11.0)
   - TensorFlowLiteC/Core (2.11.0)
-  - TensorFlowLiteSwift (2.11.0):
-    - TensorFlowLiteSwift/Core (= 2.11.0)
+  - TensorFlowLiteC/CoreML (2.11.0):
+    - TensorFlowLiteC/Core
+  - TensorFlowLiteC/Metal (2.11.0):
+    - TensorFlowLiteC/Core
   - TensorFlowLiteSwift/Core (2.11.0):
     - TensorFlowLiteC (= 2.11.0)
+  - TensorFlowLiteSwift/CoreML (2.11.0):
+    - TensorFlowLiteC/CoreML (= 2.11.0)
+    - TensorFlowLiteSwift/Core (= 2.11.0)
+  - TensorFlowLiteSwift/Metal (2.11.0):
+    - TensorFlowLiteC/Metal (= 2.11.0)
+    - TensorFlowLiteSwift/Core (= 2.11.0)
 
 DEPENDENCIES:
   - everex_tflite (from `.symlinks/plugins/everex_tflite/ios`)
@@ -27,7 +36,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  everex_tflite: f906bf1417595deb100122f95438c9ce71f52d9e
+  everex_tflite: b13b747a09ed647c437c050da7be2851c943f028
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   TensorFlowLiteC: 8a8cb6fa20ad74dff29b5e490d02c36a14d48148
   TensorFlowLiteSwift: 1a5cd776a377f8d7a009b16f5904fdf91a8debfa

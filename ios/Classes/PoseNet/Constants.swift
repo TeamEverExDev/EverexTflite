@@ -4,6 +4,7 @@
 //
 //  Created by 김동주 on 2023/01/26.
 //
+import TensorFlowLiteC
 
 enum Constants {
   // MARK: - Constants related to the image processing
@@ -15,5 +16,4 @@ enum Constants {
 
   // MARK: - Constants related to the model interperter
   static let defaultThreadCount = 2
-  static let defaultDelegate: Delegates = .Metal
 }

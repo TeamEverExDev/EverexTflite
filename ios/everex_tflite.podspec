@@ -17,7 +17,9 @@ everex tflite plugin
   s.dependency 'Flutter'
 
 
-  s.dependency 'TensorFlowLiteSwift', '~> 2.11'
+  s.dependency 'TensorFlowLiteSwift/CoreML', '~> 2.11'
+  s.dependency 'TensorFlowLiteSwift/Metal', '~> 2.11'
+
   s.static_framework = true
   s.xcconfig = { 'USER_HEADER_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/tflite" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/Flutter" "${PODS_ROOT}/Headers/Public/TensorFlowLite/tensorflow_lite" "${PODS_ROOT}/Headers/Public/tflite" "${PODS_ROOT}/TensorFlowLite/Frameworks/tensorflow_lite.framework/Headers" "${PODS_ROOT}/TensorFlowLiteSwift/Frameworks/TensorFlowLiteSwift.framework/Headers"' }
 
