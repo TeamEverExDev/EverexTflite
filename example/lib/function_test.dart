@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
@@ -83,6 +84,7 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
         _cameraIndex = i;
       }
     }
+
     EverexTflite.loadModel("assets/tflite/model_ver_v2.tflite");
   }
 
@@ -108,6 +110,11 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
         return Future(() => true); //뒤로가기 허용
       },
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+          },
+        ),
         body: completeLoadCamera ? _body() : Container(),
       ),
     );
@@ -152,11 +159,11 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
 
   Future _startLiveFeed() async {
     final camera = cameras[_cameraIndex];
-    _controller = CameraController(
-      camera,
-      ResolutionPreset.low,
-      enableAudio: false,
-    );
+    _controller = CameraController(camera, ResolutionPreset.low,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.yuv420
+            : ImageFormatGroup.bgra8888);
 
     await _controller!.initialize();
 
@@ -177,38 +184,44 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   Future _processCameraImage(CameraImage image) async {
     try {
       //320 * 240;
+
       if (busy == false) {
         busy = true;
 
-        // final WriteBuffer allBytes = WriteBuffer();
-        // for (final Plane plane in image.planes) {
-        //   allBytes.putUint8List(plane.bytes);
-        // }
-        // final bytes = allBytes.done().buffer.asUint8List();
+        if (Platform.isAndroid) {
+          List<int> strides = Int32List(image.planes.length * 2);
+          int index = 0;
+          List<Uint8List> data = image.planes.map((plane) {
+            strides[index] = (plane.bytesPerRow);
+            index++;
+            strides[index] = (plane.bytesPerPixel)!;
+            index++;
+            return plane.bytes;
+          }).toList();
+          bool? runComplete = await EverexTflite.runModel(
+              imageHeight: image.height,
+              imageWidth: image.width,
+              strides: strides,
+              bytesList:
+                  image.planes.map((Plane plane) => plane.bytes).toList());
 
-        List<int> strides = Int32List(image.planes.length * 2);
-        int index = 0;
+          if (runComplete ?? false) {
+            List<double>? result = await EverexTflite.outPut();
+            functionTestStream.setPoseData(result!);
+          }
+        } else if (Platform.isIOS) {
+          List<Uint8List> data = image.planes.map((e) => e.bytes).toList();
 
-        List<Uint8List> data = image.planes.map((plane) {
-          strides[index] = (plane.bytesPerRow);
-          index++;
-          strides[index] = (plane.bytesPerPixel)!;
-          index++;
-          return plane.bytes;
-        }).toList();
+          bool? runComplete =
+              await EverexTflite.runModel(bytesList: data, strides: []);
 
-        bool? runComplete = await EverexTflite.runModel(
-            imageHeight: image.height,
-            imageWidth: image.width,
-            strides: strides,
-            bytesList: image.planes.map((Plane plane) => plane.bytes).toList());
-
-        if (runComplete ?? false) {
-          List<double>? result = await EverexTflite.outPut();
-          print(result);
-          functionTestStream.setPoseData(result!);
+          if (runComplete ?? false) {
+            await EverexTflite.outPut();
+            List<double>? result = await EverexTflite.outPut();
+            print(result);
+            functionTestStream.setPoseData(result!);
+          }
         }
-
         busy = false;
       } else {}
     } catch (e) {

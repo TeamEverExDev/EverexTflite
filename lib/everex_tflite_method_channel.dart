@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -34,8 +35,19 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
 
   @override
   Future<List<double>?> outPut() async {
-    List<double>? k = await methodChannel.invokeMethod("outPut");
-    return k;
+    if (Platform.isAndroid) {
+      List<double>? k = await methodChannel.invokeMethod("outPut");
+      return k;
+    } else if (Platform.isIOS) {
+      List<Object?> iosOutPut = await methodChannel.invokeMethod("outPut");
+      List<double> k = [];
+      for (var s in iosOutPut) {
+        k.add(s as double);
+      }
+      return k;
+    }
+
+    return [];
   }
 
   @override
