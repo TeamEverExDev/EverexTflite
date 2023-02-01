@@ -18,39 +18,38 @@ packages:
   camera:
     dependency: "direct main"
     description:
-      path: "packages/camera/camera"
-      ref: dev
-      resolved-ref: cd2d79c09076d154fcbe940fec9eb2576c896985
-      url: "https://github.com/TeamEverExDev/plugins_camera_edit.git"
-    source: git
-    version: "0.10.0+4"
+      name: camera
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.3"
   camera_android:
     dependency: transitive
     description:
-      path: "packages/camera/camera_android"
-      ref: dev
-      resolved-ref: cd2d79c09076d154fcbe940fec9eb2576c896985
-      url: "https://github.com/TeamEverExDev/plugins_camera_edit.git"
-    source: git
-    version: "0.10.1"
+      name: camera_android
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.3"
   camera_avfoundation:
     dependency: transitive
     description:
-      path: "packages/camera/camera_avfoundation"
-      ref: dev
-      resolved-ref: cd2d79c09076d154fcbe940fec9eb2576c896985
-      url: "https://github.com/TeamEverExDev/plugins_camera_edit.git"
-    source: git
-    version: "0.9.9"
+      name: camera_avfoundation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.11"
   camera_platform_interface:
     dependency: transitive
     description:
-      path: "packages/camera/camera_platform_interface"
-      ref: dev
-      resolved-ref: cd2d79c09076d154fcbe940fec9eb2576c896985
-      url: "https://github.com/TeamEverExDev/plugins_camera_edit.git"
-    source: git
-    version: "2.3.2"
+      name: camera_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.4"
+  camera_web:
+    dependency: transitive
+    description:
+      name: camera_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.1+1"
   characters:
     dependency: transitive
     description:

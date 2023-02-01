@@ -92,18 +92,12 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
             let myUInt8bytes: [UInt8] = data.toArray(type: UInt8.self)
             
             let resizeUint8Bytes : [UInt8] = resizeBgraImage(pixels: myUInt8bytes, width: 288, height: 352, targetSize: CGSize(width: 240, height: 320))
-            
-            //let argb : [UInt8] = bgraToArgb(bgra: myUInt8bytes)
             let argb : [UInt32] = bgraToRgb(pixels: resizeUint8Bytes, width: 320, height: 240)
-            
-          
-            positions = runPoseNet(on: argb)
-            
-            
+
+            runPoseNet(on: argb)
+
             result(true)
         case "outPut":
-            positions?.insert(1.1, at: 0)
-            //print(positions)
             result(positions)
         case "checkInitialize":
             result(isInitialized)
@@ -124,9 +118,7 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     ///   - from: Range of input image to run the model.
     ///   - to: Size of view to render the result.
     /// - Returns: Result of the inference and the times consumed in every steps.
-    func runPoseNet(on pixelbuffer: [UInt32])
-    -> (Array<Float>)?
-    {
+    func runPoseNet(on pixelbuffer: [UInt32]) {
         inputImgSize = CGSize(
             width: 320, height: 240
         )
@@ -138,13 +130,9 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         
         guard let data = preprocess(of: pixelbuffer) else {
             fatalError("Preprocessing failed")
-            return nil
         }
         inference(from: data)
-    
-        var arr2 :[Float] = postprocess()
-        
-        return arr2
+        postprocess()
     }
     
     private func inference(from data: Data) {
@@ -166,11 +154,21 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     }
     
     private func preprocess(of pixelBuffer: [UInt32]) -> Data? {
-        let data = Data(bytes: pixelBuffer, count: pixelBuffer.count * MemoryLayout<UInt32>.size)
-        return data
+        let destinationBytesPerRow = Constants.rgbPixelChannels * 240
+        var floats : [Float] = []
+        floats.reserveCapacity(240 * 320 * Constants.rgbPixelChannels)
+        for y in 0 ..< 320 {
+          for x in 0 ..< 240 {
+            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3]) - Constants.mean_R)
+            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 1]) - Constants.mean_G)
+            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 2]) - Constants.mean_B)
+          }
+        }
+        return Data(copyingBufferOf: floats)
+        
     }
     
-    func postprocess() -> Array<Float> {
+    func postprocess() {
         var result : Array<Float> = []
         // MARK: Formats output tensors
         // Convert `Tensor` to `FlatArray`. As PoseNet is not quantized, convert them to Float type
@@ -181,58 +179,55 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         // `heats[0, row, col, keypoint]` value, the more likely `keypoint` being located in (`row`,
         // `col`).
 
-        let valTh: Float32 = 50.0  // 관절 임계값 설정
+        positions = Array<Float>()
         
-        
-        let keypointPositions = (0..<Model.output.keypointSize).map { keypoint -> (Float, Float) in
-            var maxValue = heats[0, 0, 0, keypoint]
-            var maxRow = 0
-            var maxCol = 0
-            for row in 0..<Model.output.height {
-                for col in 0..<Model.output.width {
-                    if heats[0, row, col, keypoint] > maxValue {
-                        maxValue = heats[0, row, col, keypoint]
-                        maxRow = row
-                        maxCol = col
+        for i in 0...16 {
+            var maxX = 0
+            var maxY = 0
+            var max : Float32 = 50.0
+             
+            for x in 0..<Model.output.width {
+                for y in 0..<Model.output.height {
+                    var value = heats[0, y, x, i]
+                    if(value > max) {
+                        max = value
+                        maxX = x
+                        maxY = y
                     }
+                
                 }
             }
             
-            if maxValue > valTh {
-                var maxRowf:Float32 = 0.0
-                var maxColf:Float32 = 0.0
-                
-                // subpixel refine
-                if maxRow >= 1 && maxRow < Model.output.height-1 {
-                    let diffY = heats[0, maxRow+1, maxCol, keypoint] - heats[0, maxRow-1, maxCol, keypoint]
-                    if diffY > 0 {
-                        maxRowf = Float(maxRow) + 0.25
-                    }else {
-                        maxRowf = Float(maxRow) - 0.25
-                    }
-                }else{
-                    maxRowf = Float(maxRow)
+            
+            var maxXf:Float = Float(maxX)
+            var maxYf:Float = Float(maxY)
+            
+            
+            // subpixel refine
+            if maxX >= 1 && maxX < Model.output.width-1 {
+                let diffY = heats[0,  maxY, maxX+1, i] - heats[0,  maxY, maxX-1,i]
+                if diffY > 0 {
+                    maxXf = Float(maxX) + 0.25
+                }else {
+                    maxXf = Float(maxX) - 0.25
                 }
-                
-                if maxCol >= 1 && maxCol < Model.output.width-1 {
-                    let diffX = heats[0, maxRow, maxCol+1, keypoint] - heats[0, maxRow, maxCol-1, keypoint]
-                    if diffX > 0 {
-                        maxColf = Float(maxCol) + 0.25
-                    }else {
-                        maxColf = Float(maxCol) - 0.25
-                    }
-                }else{
-                    maxColf = Float(maxCol)
-                }
-                
-                return (maxRowf, maxColf)
             }else{
-                return (-1.0, -1.0)
+                maxXf = Float(maxX)
             }
+            
+            if maxY >= 1 && maxY < Model.output.height-1 {
+                let diffX = heats[0,  maxY+1, maxX,i] - heats[0,  maxY-1, maxX,i]
+                if diffX > 0 {
+                    maxYf = Float(maxY) + 0.25
+                }else {
+                    maxYf = Float(maxY) - 0.25
+                }
+            }else{
+                maxYf = Float(maxY)
+            }
+            positions?.insert(maxXf, at: i * 2 + 0)
+            positions?.insert(maxYf, at: i * 2 + 1)
         }
-       
-        
-        return result
     }
 }
 
@@ -248,28 +243,6 @@ enum Model {
     static let output = (batchSize: 1, height: 80, width: 60, keypointSize: 17)
 }
 
-
-func bgraToArgb(bgra: [UInt8]) -> [UInt8] {
-    var argb = [UInt8](repeating: 0, count: bgra.count)
-    let bytesPerPixel = 4
-    
-    for i in 0..<bgra.count/4 {
-        let offset = i*4
-                  argb[offset + 0] = bgra[offset + 2]
-                  argb[offset + 1] = bgra[offset + 1]
-                  argb[offset + 2] = bgra[offset + 0]
-                  argb[offset + 3] = bgra[offset + 3]
-    }
-    
-    return argb
-}
-
-func bgra8888ToRgb(pixel: UInt32) -> (red: UInt8, green: UInt8, blue: UInt8) {
-    let blue = UInt8(pixel & 0xff)
-    let green = UInt8((pixel >> 8) & 0xff)
-    let red = UInt8((pixel >> 16) & 0xff)
-    return (red, green, blue)
-}
 
 func bgraToRgb(pixels: [UInt8], width: Int, height: Int) -> [UInt32] {
     var rgbPixels = [UInt32](repeating: 0, count: width * height * 3)

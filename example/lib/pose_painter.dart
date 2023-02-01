@@ -42,8 +42,6 @@ class PosePainter extends CustomPainter {
 
     double x = 0;
     double y = 0;
-    print("here");
-    print(poses.length);
 
     for (int i = 0; i < 34; i += 2) {
       canvas.drawCircle(
