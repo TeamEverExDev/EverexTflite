@@ -54,4 +54,9 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
   Future<bool?> close() async {
     return await methodChannel.invokeMethod("close");
   }
+
+  @override
+  Future<List?> callBackImageData() async {
+    return await methodChannel.invokeMethod("callBackImageData");
+  }
 }

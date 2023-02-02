@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 
 class PosePainter extends CustomPainter {
   PosePainter(this.poses);
-
   final List<double> poses;
-  // final Size absoluteImageSize;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -14,36 +12,29 @@ class PosePainter extends CustomPainter {
       ..strokeWidth = 10.0
       ..color = Color.fromRGBO(7, 190, 184, 1);
 
-    final backgroundPaint = Paint()
+    final facePaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 15.0
-      ..color = Colors.green;
-
-    final leftPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..color = Color.fromRGBO(7, 190, 184, 1);
-
-    final anglePainter = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..color = Colors.green;
-
-    final anglePainterBackground = Paint()
-      ..style = PaintingStyle.fill
-      ..strokeWidth = 7
-      ..color = Color.fromRGBO(7, 190, 184, 1).withOpacity(0.5);
-    //..color = Colors.black.withOpacity(0.5);
-
-    final rightPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..color = Color.fromRGBO(7, 190, 184, 1);
-
-    double x = 0;
-    double y = 0;
+      ..strokeWidth = 20.0
+      ..color = Colors.red;
+    List bodyPart = [];
 
     for (int i = 0; i < 34; i += 2) {
+      //draw dot
+      if (i == 0) {
+        canvas.drawCircle(
+            Offset(
+              translateX(
+                poses[i],
+                functionTestStream.width,
+              ),
+              translateY(
+                poses[i + 1],
+                functionTestStream.height,
+              ),
+            ),
+            1,
+            facePaint);
+      }
       canvas.drawCircle(
           Offset(
             translateX(
@@ -58,30 +49,293 @@ class PosePainter extends CustomPainter {
           1,
           paint);
     }
-
-    // for (int i = 0; i < poses.length; i++) {
-    //   if (poses[i] % 2 == 0) {
-    //     x = poses[i];
-    //   } else {
-    //     y = poses[i];
-    //     print("x : $x width ${functionTestStream.width}");
-    //     print("y : $y height ${functionTestStream.height}");
-    //     print("Draw!!");
-    //     canvas.drawCircle(
-    //         Offset(
-    //           translateX(
-    //             x,
-    //             functionTestStream.width,
-    //           ),
-    //           translateY(
-    //             y,
-    //             functionTestStream.height,
-    //           ),
+    //draw line
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[0],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[1],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[2],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[3],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[2],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[3],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[6],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[7],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[0],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[1],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[4],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[5],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[4],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[5],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[8],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[9],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[10],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[11],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[14],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[15],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[14],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[15],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[18],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[19],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[12],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[13],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //         translateX(
+    //           poses[16],
+    //           functionTestStream.width,
     //         ),
-    //         1,
-    //         paint);
-    //   }
-    // }
+    //         poses[17]),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[16],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[17],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[20],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[21],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[22],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[23],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[26],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[27],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    //
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[26],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[27],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[30],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[31],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    //
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[24],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[25],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[28],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[29],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    //
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[28],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[29],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[32],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[33],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
+    //
+    // canvas.drawLine(
+    //     Offset(
+    //       translateX(
+    //         poses[10],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[11],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     Offset(
+    //       translateX(
+    //         poses[28],
+    //         functionTestStream.width,
+    //       ),
+    //       translateY(
+    //         poses[29],
+    //         functionTestStream.height,
+    //       ),
+    //     ),
+    //     paint);
 
     // for (final pose in poses) {
     //   void paintLine(

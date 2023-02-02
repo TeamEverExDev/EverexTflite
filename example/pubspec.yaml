@@ -33,6 +33,7 @@ dependencies:
 #      url: https://github.com/TeamEverExDev/plugins_camera_edit.git
 #      ref: dev
 #      path: packages/camera/camera
+  dio: ^4.0.4                   # Http 통신
   image_picker: ^0.8.5+3
 
   # The following adds the Cupertino Icons font to your application.

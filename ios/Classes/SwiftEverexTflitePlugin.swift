@@ -5,6 +5,7 @@ import Accelerate
 import CoreImage
 
 
+
 public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     
     private var _reg : FlutterPluginRegistrar? = nil
@@ -15,7 +16,7 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         instance._reg = registrar
         registrar.addMethodCallDelegate(instance, channel: channel)
     }
-
+    
     
     private var interpreter : Interpreter? = nil
     private var delegate : Delegate? = nil
@@ -25,37 +26,35 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     private var inputImgSize: CGSize? = nil
     
     private var positions : Array<Float>? = nil
+    private var imageDatak : [UInt8]? = nil
     private var isInitialized = false
-    
+    private var createImage1 = false
+    private var createImage2 = false
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         
         switch call.method {
         case "loadModel":
             let fileName = call.arguments as? String
-    
+            
             let key = _reg?.lookupKey(forAsset: fileName ?? "")
             let modelPath = Bundle.main.path(forResource: key, ofType: nil)
-    
+            
             var options = Interpreter.Options()
             options.threadCount = 2
-            print("1")
+            
             let coreMLDelegate = CoreMLDelegate()
-               print("5")
             var delegates : [Delegate] = [coreMLDelegate!]
-               print("4")
             do {
                 interpreter = try Interpreter(modelPath: modelPath ?? "", options: options, delegates: delegates)
-                  print("2")
+                
                 try interpreter?.allocateTensors()
                 inputTensor = try interpreter?.input(at: 0)
                 heatsTensor = try interpreter?.output(at: 0)
-               print("3")
                 
                 guard (inputTensor?.dataType == .uInt8) == Model.isQuantized else {
                     fatalError("Unexpected Model: quantization is \(!Model.isQuantized)")
                 }
-                 print("a")
                 
                 guard inputTensor?.shape.dimensions[0] == Model.input.batchSize,
                       inputTensor?.shape.dimensions[1] == Model.input.height,
@@ -64,21 +63,18 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
                 else {
                     fatalError("Unexpected Model: input shape")
                 }
-                 print("b")
                 
                 guard heatsTensor?.shape.dimensions[0] == Model.output.batchSize,
                       heatsTensor?.shape.dimensions[1] == Model.output.height,
                       heatsTensor?.shape.dimensions[2] == Model.output.width,
                       heatsTensor?.shape.dimensions[3] == Model.output.keypointSize
-
+                        
                 else {
                     fatalError("Unexpected Model: heat tensor")
                 }
                 personBBInInputImg = CGRect(x: 0, y: 0, width: 0, height: 0)
                 inputImgSize = CGSize(width: 0, height: 0)
-                print("d")
             } catch {
-                print("e")
                 print(error)
             }
             
@@ -90,15 +86,19 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
             
             let data = Data(typedData.data)
             let myUInt8bytes: [UInt8] = data.toArray(type: UInt8.self)
-            
+             imageDatak = myUInt8bytes
             let resizeUint8Bytes : [UInt8] = resizeBgraImage(pixels: myUInt8bytes, width: 288, height: 352, targetSize: CGSize(width: 240, height: 320))
-            let argb : [UInt32] = bgraToRgb(pixels: resizeUint8Bytes, width: 320, height: 240)
+
+            let argb : [UInt8] = bgraToRgb(pixels: resizeUint8Bytes, width: 240, height: 320)
+            
 
             runPoseNet(on: argb)
-
             result(true)
         case "outPut":
             result(positions)
+        case "callBackImageData":
+
+            result(imageDatak)
         case "checkInitialize":
             result(isInitialized)
         case "close":
@@ -118,20 +118,15 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     ///   - from: Range of input image to run the model.
     ///   - to: Size of view to render the result.
     /// - Returns: Result of the inference and the times consumed in every steps.
-    func runPoseNet(on pixelbuffer: [UInt32]) {
-        inputImgSize = CGSize(
-            width: 320, height: 240
-        )
-        
-        if personBBInInputImg!.width <= 0 {
-            personBBInInputImg?.size.width = inputImgSize!.width
-            personBBInInputImg?.size.height = inputImgSize!.height
-        }
-        
+    func runPoseNet(on pixelbuffer: [UInt8]) {
+    
         guard let data = preprocess(of: pixelbuffer) else {
             fatalError("Preprocessing failed")
         }
+        
+        
         inference(from: data)
+        
         postprocess()
     }
     
@@ -139,7 +134,6 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         // Copy the initialized `Data` to the input `Tensor`.
         do {
             try interpreter?.copy(data, toInputAt: 0)
-            
             // Run inference by invoking the `Interpreter`.
             try interpreter?.invoke()
             
@@ -153,22 +147,25 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func preprocess(of pixelBuffer: [UInt32]) -> Data? {
+    private func preprocess(of pixelBuffer: [UInt8]) -> Data? {
+        //let imageBytes = [UInt8](pixelBuffer)
         let destinationBytesPerRow = Constants.rgbPixelChannels * 240
         var floats : [Float] = []
         floats.reserveCapacity(240 * 320 * Constants.rgbPixelChannels)
         for y in 0 ..< 320 {
-          for x in 0 ..< 240 {
-            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3]) - Constants.mean_R)
-            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 1]) - Constants.mean_G)
-            floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 2]) - Constants.mean_B)
-          }
+            for x in 0 ..< 240 {
+                floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3]) - Constants.mean_R)
+                floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 1]) - Constants.mean_G)
+                floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 2]) - Constants.mean_B)
+            }
         }
-        return Data(copyingBufferOf: floats)
         
+        //print(floats)
+        return Data(copyingBufferOf: floats)
     }
     
     func postprocess() {
+        
         var result : Array<Float> = []
         // MARK: Formats output tensors
         // Convert `Tensor` to `FlatArray`. As PoseNet is not quantized, convert them to Float type
@@ -178,14 +175,14 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         // Finds the (row, col) locations of where the keypoints are most likely to be. The highest
         // `heats[0, row, col, keypoint]` value, the more likely `keypoint` being located in (`row`,
         // `col`).
-
+        
         positions = Array<Float>()
         
         for i in 0...16 {
             var maxX = 0
             var maxY = 0
             var max : Float32 = 50.0
-             
+            
             for x in 0..<Model.output.width {
                 for y in 0..<Model.output.height {
                     var value = heats[0, y, x, i]
@@ -194,7 +191,7 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
                         maxX = x
                         maxY = y
                     }
-                
+                    
                 }
             }
             
@@ -231,7 +228,6 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     }
 }
 
-
 typealias FileInfo = (name: String, extension: String)
 
 enum Model {
@@ -243,14 +239,13 @@ enum Model {
     static let output = (batchSize: 1, height: 80, width: 60, keypointSize: 17)
 }
 
-
-func bgraToRgb(pixels: [UInt8], width: Int, height: Int) -> [UInt32] {
-    var rgbPixels = [UInt32](repeating: 0, count: width * height * 3)
+func bgraToRgb(pixels: [UInt8], width: Int, height: Int) -> [UInt8] {
+    var rgbPixels = [UInt8](repeating: 0, count: width * height * 3)
     for i in 0..<width * height {
         let offset = i * 4
-        rgbPixels[i * 3] = UInt32(pixels[offset + 2])
-        rgbPixels[i * 3 + 1] = UInt32(pixels[offset + 1])
-        rgbPixels[i * 3 + 2] = UInt32(pixels[offset])
+        rgbPixels[i * 3] = UInt8(pixels[offset + 2])
+        rgbPixels[i * 3 + 1] = UInt8(pixels[offset + 1])
+        rgbPixels[i * 3 + 2] = UInt8(pixels[offset])
     }
     return rgbPixels
 }

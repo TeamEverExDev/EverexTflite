@@ -29,4 +29,8 @@ class EverexTflite {
   static Future<bool?> close() {
     return EverexTflitePlatform.instance.close();
   }
+
+  static Future<List?> callBackImageData() {
+    return EverexTflitePlatform.instance.callBackImageData();
+  }
 }

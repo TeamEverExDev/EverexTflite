@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 import 'package:everex_tflite/everex_tflite.dart';
 import 'package:everex_tflite_example/after_layout_mix.dart';
 import 'package:everex_tflite_example/functon_test_stream_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'main.dart';
@@ -53,7 +56,8 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   double _maxAvailableZoom = 1.0;
   double _currentScale = 1.0;
   double _baseScale = 1.0;
-
+  var dio = Dio();
+  bool uploadData = false;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = _controller;
@@ -78,6 +82,11 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations(
+      [
+        DeviceOrientation.portraitUp,
+      ],
+    );
     //_imagePicker = ImagePicker();
     for (var i = 0; i < cameras.length; i++) {
       if (cameras[i].lensDirection == widget.initialDirection) {
@@ -217,10 +226,26 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
               await EverexTflite.runModel(bytesList: data, strides: []);
 
           if (runComplete ?? false) {
-            await EverexTflite.outPut();
-            List<double>? result = await EverexTflite.outPut();
-            print(result);
-            functionTestStream.setPoseData(result!);
+            if (uploadData == false) {
+              List<dynamic>? k = await EverexTflite.callBackImageData();
+
+              var param = {"data": k};
+
+              Response response = await dio.post(
+                'http://192.168.219.148:8080/api/raw',
+                data: jsonEncode(param),
+                options: Options(headers: {
+                  HttpHeaders.contentTypeHeader: "application/json",
+                }),
+              );
+              if (200 < response.statusCode! && response.statusCode! < 300) {
+                uploadData = true;
+              }
+            }
+
+            //List<double>? result = await EverexTflite.outPut();
+            // print(result);
+            //functionTestStream.setPoseData(result!);
           }
         }
         busy = false;

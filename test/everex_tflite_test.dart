@@ -35,6 +35,12 @@ class MockEverexTflitePlatform
   Future<void> loadModel(String fileName) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List?> callBackImageData() {
+    // TODO: implement callBackImageData
+    throw UnimplementedError();
+  }
 }
 
 void main() {

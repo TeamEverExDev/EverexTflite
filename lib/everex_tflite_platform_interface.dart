@@ -46,4 +46,8 @@ abstract class EverexTflitePlatform extends PlatformInterface {
   Future<bool?> close() {
     throw UnimplementedError('close() has not been implemented.');
   }
+
+  Future<List?> callBackImageData() async {
+    throw UnimplementedError('callBackImageData() has not been implemented.');
+  }
 }
