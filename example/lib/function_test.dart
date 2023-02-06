@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -194,6 +193,11 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
     try {
       //320 * 240;
 
+      print("높이 넓이");
+      print(image.width);
+      print(image.height);
+      print(image.format.group);
+
       if (busy == false) {
         busy = true;
 
@@ -226,26 +230,25 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
               await EverexTflite.runModel(bytesList: data, strides: []);
 
           if (runComplete ?? false) {
-            if (uploadData == false) {
-              List<dynamic>? k = await EverexTflite.callBackImageData();
-
-              var param = {"data": k};
-
-              Response response = await dio.post(
-                'http://192.168.219.148:8080/api/raw',
-                data: jsonEncode(param),
-                options: Options(headers: {
-                  HttpHeaders.contentTypeHeader: "application/json",
-                }),
-              );
-              if (200 < response.statusCode! && response.statusCode! < 300) {
-                uploadData = true;
-              }
-            }
-
-            //List<double>? result = await EverexTflite.outPut();
-            // print(result);
-            //functionTestStream.setPoseData(result!);
+            // if (uploadData == false) {
+            //   List<dynamic>? k = await EverexTflite.callBackImageData();
+            //
+            //   var param = {"data": k};
+            //
+            //   Response response = await dio.post(
+            //     'http://192.168.219.148:8080/api/raw',
+            //     data: jsonEncode(param),
+            //     options: Options(headers: {
+            //       HttpHeaders.contentTypeHeader: "application/json",
+            //     }),
+            //   );
+            //   if (200 < response.statusCode! && response.statusCode! < 300) {
+            //     uploadData = true;
+            //   }
+            // }
+            List<double>? result = await EverexTflite.outPut();
+            print(result);
+            functionTestStream.setPoseData(result!);
           }
         }
         busy = false;

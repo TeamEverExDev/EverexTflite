@@ -17,8 +17,8 @@ everex tflite plugin
   s.dependency 'Flutter'
 
 
-  s.dependency 'TensorFlowLiteSwift/CoreML', '~> 2.11'
-  s.dependency 'TensorFlowLiteSwift/Metal', '~> 2.11'
+  s.dependency 'TensorFlowLiteSwift/CoreML', '~> 0.0.1-nightly'
+  s.dependency 'TensorFlowLiteSwift/Metal', '~> 0.0.1-nightly'
 #   s.dependency 'Toast-Swift', '~> 5.0.1'
 
   s.static_framework = true
