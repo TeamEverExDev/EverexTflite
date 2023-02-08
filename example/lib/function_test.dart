@@ -78,7 +78,6 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
     functionTestStream.width = MediaQuery.of(context).size.width;
     functionTestStream.height = MediaQuery.of(context).size.height;
 
-    Future.delayed(Duration(seconds: 5));
     await _startLiveFeed();
   }
 
@@ -175,16 +174,24 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
       NativeDeviceOrientation orientation =
           await NativeDeviceOrientationCommunicator()
               .orientation(useSensor: false);
-
       List<int> strides = Int32List(image.planes.length * 2);
-      int index = 0;
-      List<Uint8List> data = image.planes.map((plane) {
-        strides[index] = (plane.bytesPerRow);
-        index++;
-        strides[index] = (plane.bytesPerPixel)!;
-        index++;
-        return plane.bytes;
-      }).toList();
+      if (Platform.isAndroid) {
+        int index = 0;
+        List<Uint8List> data = image.planes.map((plane) {
+          strides[index] = (plane.bytesPerRow);
+          index++;
+          strides[index] = (plane.bytesPerPixel)!;
+          index++;
+          return plane.bytes;
+        }).toList();
+      }
+
+      print("높이" + image.height.toString());
+      print("넓이" + image.width.toString());
+
+      print(orientation.name);
+      print(_controller!.description.lensDirection.name);
+      print(_controller!.description.sensorOrientation);
 
       if (busy == false) {
         busy = true;
