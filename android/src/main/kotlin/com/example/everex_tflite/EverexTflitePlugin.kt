@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Environment
 import android.os.Environment.DIRECTORY_DCIM
 import android.os.SystemClock
 import android.util.Log
@@ -118,14 +117,20 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 var arg: HashMap<*, *> = call.arguments as HashMap<*, *>
                 var byteArray: List<ByteArray> = arg.get("bytesList") as List<ByteArray>
                 var strides: IntArray = arg.get("strides") as IntArray
-                var bitmap: Bitmap = Bitmap.createBitmap(320, 240, Bitmap.Config.ARGB_8888)
+                var imageHeight: Int = arg.get("imageHeight") as Int
+                var imageWidth: Int = arg.get("imageWidth") as Int
+                var rotations: Int = arg.get("rotation") as Int
+                var imageRotationDegree: Int = arg.get("imageRotationDegree") as Int
+                var cameraLensDirection: String = arg.get("cameraLensDirection") as String
+                var deviceOrientation: String = arg.get("deviceOrientation") as String
+
 
                 var data = YuvConverter.NV21toJPEG(
                     YuvConverter.YUVtoNV21(
                         byteArray,
                         strides,
-                        320,
-                        240
+                        imageWidth,
+                        imageHeight
                     ), 320, 240, 100
                 )
 

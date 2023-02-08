@@ -18,6 +18,9 @@ class MockEverexTflitePlatform
   Future<bool?> runModel({
     required List<Uint8List> bytesList,
     required List<int> strides,
+    String? cameraLensDirection,
+    String? deviceOrientation,
+    int imageRotationDegree = 90,
     int imageHeight = 1280,
     int imageWidth = 720,
     int rotation = 90, // Android only

@@ -9,8 +9,8 @@ import 'package:everex_tflite_example/after_layout_mix.dart';
 import 'package:everex_tflite_example/functon_test_stream_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 
 import 'main.dart';
 import 'pose_painter.dart';
@@ -35,29 +35,12 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   CameraController? _controller;
-  ImagePicker? _imagePicker;
   int _cameraIndex = 0;
-  double zoomLevel = 0.0, minZoomLevel = 0.0, maxZoomLevel = 0.0;
   bool completeLoadCamera = false;
-
   XFile? imageFile;
-  XFile? videoFile;
-  double _minAvailableExposureOffset = 0.0;
-  double _maxAvailableExposureOffset = 0.0;
-  double _currentExposureOffset = 0.0;
-  late AnimationController _flashModeControlRowAnimationController;
-  late Animation<double> _flashModeControlRowAnimation;
-  late AnimationController _exposureModeControlRowAnimationController;
-  late Animation<double> _exposureModeControlRowAnimation;
-  late AnimationController _focusModeControlRowAnimationController;
-  late Animation<double> _focusModeControlRowAnimation;
-  double _minAvailableZoom = 1.0;
-  double _maxAvailableZoom = 1.0;
-  double _currentScale = 1.0;
-  double _baseScale = 1.0;
   var dio = Dio();
   bool uploadData = false;
-  @override
+
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = _controller;
     if (cameraController == null || !cameraController.value.isInitialized) {
@@ -81,25 +64,20 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations(
-      [
-        DeviceOrientation.portraitUp,
-      ],
-    );
-    //_imagePicker = ImagePicker();
     for (var i = 0; i < cameras.length; i++) {
       if (cameras[i].lensDirection == widget.initialDirection) {
         _cameraIndex = i;
       }
     }
 
-    EverexTflite.loadModel("assets/tflite/model_ver_v2.tflite");
+    EverexTflite.loadModel("assets/tflite/model_optimized.tflite");
   }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     functionTestStream.width = MediaQuery.of(context).size.width;
     functionTestStream.height = MediaQuery.of(context).size.height;
+
     Future.delayed(Duration(seconds: 5));
     await _startLiveFeed();
   }
@@ -178,6 +156,8 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
     _controller?.startImageStream(_processCameraImage);
 
     completeLoadCamera = true;
+    //_controller!.lockCaptureOrientation();
+
     setState(() {});
   }
 
@@ -192,65 +172,38 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
   Future _processCameraImage(CameraImage image) async {
     try {
       //320 * 240;
+      NativeDeviceOrientation orientation =
+          await NativeDeviceOrientationCommunicator()
+              .orientation(useSensor: false);
 
-      print("높이 넓이");
-      print(image.width);
-      print(image.height);
-      print(image.format.group);
+      List<int> strides = Int32List(image.planes.length * 2);
+      int index = 0;
+      List<Uint8List> data = image.planes.map((plane) {
+        strides[index] = (plane.bytesPerRow);
+        index++;
+        strides[index] = (plane.bytesPerPixel)!;
+        index++;
+        return plane.bytes;
+      }).toList();
 
       if (busy == false) {
         busy = true;
 
-        if (Platform.isAndroid) {
-          List<int> strides = Int32List(image.planes.length * 2);
-          int index = 0;
-          List<Uint8List> data = image.planes.map((plane) {
-            strides[index] = (plane.bytesPerRow);
-            index++;
-            strides[index] = (plane.bytesPerPixel)!;
-            index++;
-            return plane.bytes;
-          }).toList();
-          bool? runComplete = await EverexTflite.runModel(
-              imageHeight: image.height,
-              imageWidth: image.width,
-              strides: strides,
-              bytesList:
-                  image.planes.map((Plane plane) => plane.bytes).toList());
+        bool? runComplete = await EverexTflite.runModel(
+            imageRotationDegree: _controller!.description.sensorOrientation,
+            cameraLensDirection: _controller!.description.lensDirection.name,
+            deviceOrientation: orientation.name,
+            imageHeight: image.height,
+            imageWidth: image.width,
+            strides: strides,
+            bytesList: image.planes.map((Plane plane) => plane.bytes).toList());
 
-          if (runComplete ?? false) {
-            List<double>? result = await EverexTflite.outPut();
-            print(result);
-            functionTestStream.setPoseData(result!);
-          }
-        } else if (Platform.isIOS) {
-          List<Uint8List> data = image.planes.map((e) => e.bytes).toList();
-
-          bool? runComplete =
-              await EverexTflite.runModel(bytesList: data, strides: []);
-
-          if (runComplete ?? false) {
-            // if (uploadData == false) {
-            //   List<dynamic>? k = await EverexTflite.callBackImageData();
-            //
-            //   var param = {"data": k};
-            //
-            //   Response response = await dio.post(
-            //     'http://192.168.219.148:8080/api/raw',
-            //     data: jsonEncode(param),
-            //     options: Options(headers: {
-            //       HttpHeaders.contentTypeHeader: "application/json",
-            //     }),
-            //   );
-            //   if (200 < response.statusCode! && response.statusCode! < 300) {
-            //     uploadData = true;
-            //   }
-            // }
-            List<double>? result = await EverexTflite.outPut();
-            print(result);
-            functionTestStream.setPoseData(result!);
-          }
+        if (runComplete ?? false) {
+          List<double>? result = await EverexTflite.outPut();
+          print(result);
+          functionTestStream.setPoseData(result!);
         }
+
         busy = false;
       } else {}
     } catch (e) {

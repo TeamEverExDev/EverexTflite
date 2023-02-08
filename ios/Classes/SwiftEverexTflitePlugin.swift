@@ -227,7 +227,7 @@ enum Model {
         name: "model_ver_v2", extension: "tflite"
     )
     static let input = (batchSize: 1, height: 320, width: 240, channelSize: 3)
-    static let output = (batchSize: 1, height: 80, width: 60, keypointSize: 17)
+    static let output = (batchSize: 1, height: 80, width: 60, keypointSize: 24)
 }
 
 func bgraToRgb(pixels: [UInt8], width: Int, height: Int) -> [UInt8] {
@@ -259,6 +259,7 @@ func resizeBgraImage(pixels: [UInt8], width: Int, height: Int, targetSize: CGSiz
             resizedPixels[newIndex + 3] = pixels[oldIndex + 3]
         }
     }
+
     return resizedPixels
 }
 

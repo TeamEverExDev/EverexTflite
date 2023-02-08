@@ -28,6 +28,7 @@ dependencies:
 
   rxdart: ^0.27.5
   camera: ^0.10.3
+  native_device_orientation: ^1.1.4
 #  camera:
 #    git:
 #      url: https://github.com/TeamEverExDev/plugins_camera_edit.git

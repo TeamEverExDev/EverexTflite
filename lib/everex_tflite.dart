@@ -10,6 +10,9 @@ class EverexTflite {
   static Future<bool?> runModel({
     required List<Uint8List> bytesList,
     required List<int> strides,
+    String? deviceOrientation,
+    String? cameraLensDirection,
+    int imageRotationDegree = 90,
     int imageHeight = 1280,
     int imageWidth = 720,
     int rotation = 90, // Android only
@@ -17,6 +20,9 @@ class EverexTflite {
     return EverexTflitePlatform.instance.runModel(
         strides: strides,
         bytesList: bytesList,
+        deviceOrientation: deviceOrientation,
+        cameraLensDirection: cameraLensDirection,
+        imageRotationDegree: imageRotationDegree,
         imageHeight: imageHeight,
         imageWidth: imageWidth,
         rotation: rotation);

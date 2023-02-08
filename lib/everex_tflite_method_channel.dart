@@ -19,11 +19,17 @@ class MethodChannelEverexTflite extends EverexTflitePlatform {
   Future<bool?> runModel({
     required List<Uint8List> bytesList,
     required List<int> strides,
+    int imageRotationDegree = 90,
+    String? cameraLensDirection,
+    String? deviceOrientation,
     int imageHeight = 1280,
     int imageWidth = 720,
     int rotation = 90, // Android only
   }) async {
     bool? k = await methodChannel.invokeMethod("runModel", {
+      "cameraLensDirection": cameraLensDirection,
+      "deviceOrientation": deviceOrientation,
+      "imageRotationDegree": imageRotationDegree,
       "bytesList": bytesList,
       "strides": strides,
       "imageHeight": imageHeight,
