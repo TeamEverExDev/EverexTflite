@@ -162,7 +162,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 }
 
 
-
                 inputImageBuffer!!.load(decodeBitmap)
 
                 if (!createImage1) {
@@ -213,7 +212,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 else{
 //                    x = maxOf((32/6*findMinMaxValues(positions)-90),0)
 //                    Log.e("xvalue",x.toString())
-                    x = findCenterValues(positions,x)
+//                    x = findCenterValues(positions,x)
+                    x = 70
                     width = 180
                     xvaluescale(positions)
                 }
@@ -252,16 +252,16 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 maxX = maxOf(maxX, x)
             }
         }
-        if ((minX+maxX)/2f<25 && (x==70)){
+        if (minX<2 && (x==70)){
             return 10
         }
-        else if ((minX+maxX)/2f<25 && (x==130)){
+        else if (minX<2 && (x==130)){
             return 70
         }
-        else if ((minX+maxX)/2f>35 && (x == 10)){
+        else if (maxX>58 && (x == 10)){
             return 70
         }
-        else if ((minX+maxX)/2f>35 && (x==70)){
+        else if (maxX>58 && (x==70)){
             return 130
         }
         else{
