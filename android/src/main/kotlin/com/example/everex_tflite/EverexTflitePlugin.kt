@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.os.Environment
 import android.os.Environment.DIRECTORY_DCIM
-import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
 import androidx.annotation.NonNull
-import io.flutter.BuildConfig
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -46,8 +46,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var numJoints: Int = 0
     private var positions = FloatArray(numJoints * 2)
 
-    var converter: YuvToRgbConverter? = null
-
     private var inputImageBuffer: TensorImage? = null
     private var imageprocessorRot0: ImageProcessor? = null
     private var imageprocessorRot90: ImageProcessor? = null
@@ -65,7 +63,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
         flutterAsset = flutterPluginBinding.flutterAssets
-        converter = YuvToRgbConverter(context)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -136,20 +133,39 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
 
                 var decodeBitmap: Bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
-                if (!createImage1) {
-                    createImage1 = true;
-                    bitmapToFile(
-                        BitmapFactory.decodeByteArray(data, 0, data.size),
-                        "before_run",
-                        context
-                    )
+
+                var rotation = 1
+                if (cameraLensDirection == "front" && deviceOrientation == "portraitUp") {
+                    Log.d("d", "여길 타고있나요")
+                    decodeBitmap = matrixBitmap(decodeBitmap, -1f, 1f, 90f)
+                } else if (cameraLensDirection == "front" && deviceOrientation == "landscapeLeft") {
+                    decodeBitmap = matrixBitmap(decodeBitmap, -1f, 1f, 0f)
+                } else if (cameraLensDirection == "front" && deviceOrientation == "landscapeRight") {
+                    decodeBitmap = matrixBitmap(decodeBitmap, -1f, 1f, 180f)
+                } else if (cameraLensDirection == "back" && deviceOrientation == "portraitUp") {
+                    decodeBitmap = matrixBitmap(decodeBitmap, 1f, 1f, 90f)
+                } else if (cameraLensDirection == "back" && deviceOrientation == "landscapeLeft") {
+                    decodeBitmap = matrixBitmap(decodeBitmap, 1f, 1f, 0f)
+                } else if (cameraLensDirection == "back" && deviceOrientation == "landscapeRight") {
+                    decodeBitmap = matrixBitmap(decodeBitmap, 1f, 1f, 180f)
                 }
+
+
+                //decodeBitmap =Bitmap.createBitmap(decodeBitmap, x, y, width, height)
 
 
                 inputImageBuffer!!.load(decodeBitmap)
 
-                var rotation = 3
+                if (!createImage1) {
+                    createImage1 = true;
+                    bitmapToFile(
+                        decodeBitmap,
+                        "b_${cameraLensDirection}_${deviceOrientation}",
+                        context
+                    )
+                }
 
+                rotation = 0
                 inputImageBuffer = when (rotation) {
                     Surface.ROTATION_0 -> imageprocessorRot0!!.process(inputImageBuffer)
                     Surface.ROTATION_90 -> imageprocessorRot90!!.process(inputImageBuffer)
@@ -162,19 +178,16 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 val byteBuffer = inputImageBuffer!!.buffer
 
-                val startTime = SystemClock.uptimeMillis()
-
                 if (!createImage2) {
                     createImage2 = true;
                     bitmapToFile(
-                        inputImageBuffer!!.bitmap, "after_run", context
+                        inputImageBuffer!!.bitmap,
+                        "a_${cameraLensDirection}_${deviceOrientation}",
+                        context
                     )
                 }
 
                 interpreter?.run(byteBuffer, heatmapOutput)
-
-                // heatmap smoothing
-                //poseEstimationUtil.heatmapSmoothing(heatmapOutput, prevHeatmap)
 
                 positions =
                     poseEstimationUtil.getJointPositions(
@@ -183,15 +196,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         outputWidth,
                         numJoints
                     )
-
-                val endTime = SystemClock.uptimeMillis()
-                val elapsedTime = endTime - startTime
-
-                if (BuildConfig.DEBUG) {
-                    Triple(positions, elapsedTime, null)
-                } else {
-                    Triple(positions, elapsedTime, null)
-                }
 
                 result.success(true)
             }
@@ -223,8 +227,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     }
 
     private fun buildImageProcessor(rotParam: Int): ImageProcessor {
-        val resizeHeight = kotlin.math.min(inputImageWidth, inputImageHeight)
-        val resizeWidth = kotlin.math.max(inputImageWidth, inputImageHeight)
+        val resizeWidth = kotlin.math.min(inputImageWidth, inputImageHeight)
+        val resizeHeight = kotlin.math.max(inputImageWidth, inputImageHeight)
 
         return ImageProcessor.Builder()
             .add(ResizeOp(resizeHeight, resizeWidth, ResizeOp.ResizeMethod.BILINEAR))
@@ -242,12 +246,25 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     }
 }
 
+fun matrixBitmap(bitmap: Bitmap, sx: Float, sy: Float, degree: Float): Bitmap {
+    val matrix = Matrix()
+    matrix.preScale(sx, sy)
+    val rotateMatrix = Matrix()
+    rotateMatrix.postRotate(degree)
+    matrix.postConcat(rotateMatrix)
+
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+}
+
 private fun bitmapToFile(bitmap: Bitmap, fileName: String, context: Context): File {
     var out: OutputStream? = null
 
     val file =
-        File("${context.getExternalFilesDir(DIRECTORY_DCIM)}/everex/$fileName.jpg")
+        File("${Environment.getExternalStorageDirectory()}/" + DIRECTORY_DCIM + "/mora/$fileName.jpg")
+
+    Log.d("filepath", file.absolutePath);
     try {
+        Log.d("t", "이미지 저장 시도")
         file.parentFile.mkdirs()
         if (file.isFile) {
             file.delete()
@@ -255,12 +272,12 @@ private fun bitmapToFile(bitmap: Bitmap, fileName: String, context: Context): Fi
         file.createNewFile()
         out = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+        Log.d("t", "이미지 저장 완료")
     } finally {
         out?.close()
     }
     return file
 }
-
 
 
 
