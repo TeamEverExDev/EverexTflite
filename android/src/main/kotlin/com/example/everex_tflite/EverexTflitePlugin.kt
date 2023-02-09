@@ -59,7 +59,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var createImage3: Boolean = false
     var x:Int = 70
     var y:Int = 0
-    var width:Int = 180
+    var width:Int = 240
     var height:Int = 240
     var x_0:Int = 0
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -213,9 +213,10 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 //                    x = maxOf((32/6*findMinMaxValues(positions)-90),0)
 //                    Log.e("xvalue",x.toString())
 //                    x = findCenterValues(positions,x)
-                    x = 70
-                    width = 180
+//                    x = 70
+                    width = 240
                     xvaluescale(positions)
+                    x = findCenterValues(positions,x)
                 }
                 result.success(true)
             }
@@ -244,29 +245,24 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     fun findCenterValues(a: FloatArray,xx:Int): Int {
         var minX = Float.MAX_VALUE
         var maxX = Float.MIN_VALUE
-
+        var sum = 0f
+        var count =0
         for (i in a.indices step 2) {
             val x = a[i]
             if (x != 0.0f) {
                 minX = minOf(minX, x)
                 maxX = maxOf(maxX, x)
+                sum += x
+                count +=1
             }
         }
-        if (minX<2 && (x==70)){
-            return 10
+        if (sum/count <20){
+            return 0
         }
-        else if (minX<2 && (x==130)){
-            return 70
+        else if (sum/count >30){
+            return 80
         }
-        else if (maxX>58 && (x == 10)){
-            return 70
-        }
-        else if (maxX>58 && (x==70)){
-            return 130
-        }
-        else{
-            return xx
-        }
+        return 40
 
     }
     fun xvaluescale(a: FloatArray): FloatArray {
