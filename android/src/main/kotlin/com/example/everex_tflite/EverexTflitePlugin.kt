@@ -161,7 +161,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     decodeBitmap =Bitmap.createBitmap(decodeBitmap, x, y, width, height)
                 }
 
-
                 inputImageBuffer!!.load(decodeBitmap)
 
                 if (!createImage1) {
@@ -247,6 +246,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         var maxX = Float.MIN_VALUE
         var sum = 0f
         var count =0
+
         for (i in a.indices step 2) {
             val x = a[i]
             if (x != 0.0f) {
@@ -263,7 +263,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             return 80
         }
         return 40
-
     }
     fun xvaluescale(a: FloatArray): FloatArray {
         for (i in a.indices step 2) {

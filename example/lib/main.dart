@@ -65,6 +65,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _incrementCounterMinus() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => const CameraView(
+        title: 'test',
+        initialDirection: CameraLensDirection.back,
+      ),
+    ));
+    setState(() {
+      _counter++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,10 +97,20 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: _incrementCounter,
+            tooltip: 'Increment',
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            onPressed: _incrementCounterMinus,
+            tooltip: 'Increment',
+            child: const Icon(Icons.remove),
+          ),
+        ],
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

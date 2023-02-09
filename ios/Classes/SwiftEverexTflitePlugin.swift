@@ -31,6 +31,8 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         
+        var numJoints : Int = 0
+        
         switch call.method {
         case "loadModel":
             let fileName = call.arguments as? String
@@ -85,12 +87,19 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         case "runModel":
             let arg = call.arguments as? NSDictionary
             let temp : [FlutterStandardTypedData] = arg?["bytesList"] as! [FlutterStandardTypedData]
+            
+            let cameraLensDirection: String = arg?["cameraLensDirection"] as! String
+            let deviceOrientation: String = arg?["deviceOrientation"] as! String
+            let imageWidth: Int = arg?["imageWidth"] as! Int
+            let imageHeight: Int = arg?["imageHeight"] as! Int
+            
             let typedData : FlutterStandardTypedData = temp.first!
             
             let data = Data(typedData.data)
             let myUInt8bytes: [UInt8] = data.toArray(type: UInt8.self)
             
-            let resizeUint8Bytes : [UInt8] = resizeBgraImage(pixels: myUInt8bytes, width: 288, height: 352, targetSize: CGSize(width: 240, height: 320))
+
+            let resizeUint8Bytes : [UInt8] = resizeBgraImage(pixels: myUInt8bytes, width: imageWidth, height: imageHeight, targetSize: CGSize(width: 240, height: 320))
             let rgb : [UInt8] = bgraToRgb(pixels: resizeUint8Bytes, width: 240, height: 320)
             
             runPoseNet(on: rgb)
@@ -98,7 +107,6 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         case "outPut":
             result(positions)
         case "callBackImageData":
-            
             result(imageDatak)
         case "checkInitialize":
             result(isInitialized)
@@ -148,11 +156,7 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     }
     
     private func preprocess(of pixelBuffer: [UInt8]) -> Data? {
-        
         let destinationBytesPerRow = Constants.rgbPixelChannels * 240
-        
-        
-        
         var floats : [Float] = []
         
         floats.reserveCapacity(240 * 320 * Constants.rgbPixelChannels)
@@ -164,7 +168,6 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
                 floats.append(Float(pixelBuffer[y * destinationBytesPerRow + x * 3 + 2]) - Constants.mean_B)
             }
         }
-        
         return Data(copyingBufferOf: floats)
     }
     
