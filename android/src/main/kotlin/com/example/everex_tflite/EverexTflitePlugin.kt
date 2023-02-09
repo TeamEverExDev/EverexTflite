@@ -57,11 +57,11 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var createImage1: Boolean = false
     var createImage2: Boolean = false
     var createImage3: Boolean = false
-    var x:Int = 70
-    var y:Int = 0
-    var width:Int = 240
-    var height:Int = 240
-    var x_0:Int = 0
+    var x: Int = 70
+    var y: Int = 0
+    var width: Int = 240
+    var height: Int = 240
+    var x_0: Int = 0
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "everex_tflite")
         channel.setMethodCallHandler(this)
@@ -154,11 +154,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     decodeBitmap = matrixBitmap(decodeBitmap, 1f, 1f, 180f)
                 }
 
-                if(deviceOrientation == "portraitUp"){
-
-                }
-                else{
-                    decodeBitmap =Bitmap.createBitmap(decodeBitmap, x, y, width, height)
+                if (deviceOrientation != "portraitUp") {
+                    decodeBitmap = Bitmap.createBitmap(decodeBitmap, x, y, width, height)
                 }
 
                 inputImageBuffer!!.load(decodeBitmap)
@@ -203,19 +200,12 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         outputWidth,
                         numJoints
                     )
-                Log.e("positions",positions.toString())
+                Log.e("positions", positions.toString())
 
-                if(deviceOrientation == "portraitUp"){
-
-                }
-                else{
-//                    x = maxOf((32/6*findMinMaxValues(positions)-90),0)
-//                    Log.e("xvalue",x.toString())
-//                    x = findCenterValues(positions,x)
-//                    x = 70
+                if (deviceOrientation != "portraitUp") {
                     width = 240
                     xvaluescale(positions)
-                    x = findCenterValues(positions,x)
+                    x = findCenterValues(positions, x)
                 }
                 result.success(true)
             }
@@ -241,11 +231,12 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             }
         }
     }
-    fun findCenterValues(a: FloatArray,xx:Int): Int {
+
+    fun findCenterValues(a: FloatArray, xx: Int): Int {
         var minX = Float.MAX_VALUE
         var maxX = Float.MIN_VALUE
         var sum = 0f
-        var count =0
+        var count = 0
 
         for (i in a.indices step 2) {
             val x = a[i]
@@ -253,23 +244,24 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 minX = minOf(minX, x)
                 maxX = maxOf(maxX, x)
                 sum += x
-                count +=1
+                count += 1
             }
         }
-        if (sum/count <20){
+        if (sum / count < 20) {
             return 0
-        }
-        else if (sum/count >30){
+        } else if (sum / count > 30) {
             return 80
         }
         return 40
     }
+
     fun xvaluescale(a: FloatArray): FloatArray {
         for (i in a.indices step 2) {
-            a[i] = a[i]*width/320+30*(x)/160
+            a[i] = a[i] * width / 320 + 30 * (x) / 160
         }
         return a
     }
+
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }

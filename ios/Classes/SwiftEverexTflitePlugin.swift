@@ -29,6 +29,9 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
     private var createImage1 = false
     private var createImage2 = false
     
+    private var x : Int = 0
+    private var y : Int = 0
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         
         var numJoints : Int = 0
@@ -90,19 +93,36 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
             
             let cameraLensDirection: String = arg?["cameraLensDirection"] as! String
             let deviceOrientation: String = arg?["deviceOrientation"] as! String
-            let imageWidth: Int = arg?["imageWidth"] as! Int
-            let imageHeight: Int = arg?["imageHeight"] as! Int
+            var imageWidth: Int = arg?["imageWidth"] as! Int
+            var imageHeight: Int = arg?["imageHeight"] as! Int
             
             let typedData : FlutterStandardTypedData = temp.first!
             
             let data = Data(typedData.data)
-            let myUInt8bytes: [UInt8] = data.toArray(type: UInt8.self)
+            var myUInt8bytes: [UInt8] = data.toArray(type: UInt8.self)
             
-
+            
+            //width 350  height 288
+            //deviceOrientation landscapeLeft, landscapeRight
+            //
+            //portraitUp
+            
+            if(deviceOrientation != "portraitUp") {
+                myUInt8bytes = cropImage(image: myUInt8bytes, width: imageWidth, height: imageHeight, rect:  CGRect(x: x, y: y, width: 288, height: 288))
+                imageWidth = 288
+                imageHeight = 288
+            }
+         
             let resizeUint8Bytes : [UInt8] = resizeBgraImage(pixels: myUInt8bytes, width: imageWidth, height: imageHeight, targetSize: CGSize(width: 240, height: 320))
             let rgb : [UInt8] = bgraToRgb(pixels: resizeUint8Bytes, width: 240, height: 320)
-            
+
             runPoseNet(on: rgb)
+        
+    
+            if( deviceOrientation != "portraitUp") {
+                positions =  xvaluescale(a: positions!, width: 288, x: x)
+                x = findCenterValues(a: positions!, xx: x)
+            }
             result(true)
         case "outPut":
             result(positions)
@@ -262,7 +282,7 @@ func resizeBgraImage(pixels: [UInt8], width: Int, height: Int, targetSize: CGSiz
             resizedPixels[newIndex + 3] = pixels[oldIndex + 3]
         }
     }
-
+    
     return resizedPixels
 }
 
@@ -275,4 +295,67 @@ func normalizeRGBImage(image: [Float]) -> [Float] {
     }
     
     return normalizedImage
+}
+
+func cropImage(image: [UInt8], width: Int, height: Int, rect: CGRect) -> [UInt8] {
+    let x = Int(rect.minX)
+    let y = Int(rect.minY)
+    let w = Int(rect.width)
+    let h = Int(rect.height)
+    
+    let bytesPerPixel = 4
+    let bytesPerRow = width * bytesPerPixel
+    let croppedBytesPerRow = w * bytesPerPixel
+    
+    var croppedImage = [UInt8](repeating: 0, count: h * croppedBytesPerRow)
+    
+    for row in 0..<h {
+        let srcRowStart = (y + row) * bytesPerRow
+        let srcRowEnd = srcRowStart + w * bytesPerPixel
+        let dstRowStart = row * croppedBytesPerRow
+        
+        for column in 0..<w {
+            let srcPixelStart = srcRowStart + (x + column) * bytesPerPixel
+            let dstPixelStart = dstRowStart + column * bytesPerPixel
+            
+            croppedImage[dstPixelStart + 0] = image[srcPixelStart + 0]
+            croppedImage[dstPixelStart + 1] = image[srcPixelStart + 1]
+            croppedImage[dstPixelStart + 2] = image[srcPixelStart + 2]
+            croppedImage[dstPixelStart + 3] = image[srcPixelStart + 3]
+        }
+    }
+    
+    return croppedImage
+}
+
+func findCenterValues(a: [Float], xx: Int) -> Int {
+    var minX: Float = Float.greatestFiniteMagnitude
+    var maxX: Float = Float.leastNormalMagnitude
+    var sum: Float = 0
+    var count: Int = 0
+    
+    for i in stride(from: 0, to: a.count, by: 2) {
+        let x = a[i]
+        if x != 0.0 {
+            minX = min(minX, x)
+            maxX = max(maxX, x)
+            sum += x
+            count += 1
+        }
+    }
+    if sum / Float(count) < 20 {
+        return 0
+    } else if sum / Float(count) > 30 {
+        return 64
+    }
+    return 32
+}
+
+func xvaluescale( a: [Float] ,width : Int, x: Int) -> [Float] {
+    var temp : [Float] = a
+    for i in stride(from: 0, to: a.count, by: 2) {
+        //30 옆으로 얼마나 가느냐..?
+        temp[i] = temp[i] * Float(width) / 352 + 32 * Float(x) / 176
+    }
+    return temp
 }
