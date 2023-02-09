@@ -57,9 +57,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var createImage1: Boolean = false
     var createImage2: Boolean = false
     var createImage3: Boolean = false
-    var x:Int = 0
+    var x:Int = 70
     var y:Int = 0
-    var width:Int = 320
+    var width:Int = 180
     var height:Int = 240
     var x_0:Int = 0
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -252,21 +252,21 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 maxX = maxOf(maxX, x)
             }
         }
-//        if ((minX+maxX)/2f<25 && (x==70)){
-//            return 10
-//        }
-//        else if ((minX+maxX)/2f<25 && (x==130)){
-//            return 70
-//        }
-//        else if ((minX+maxX)/2f>35 && (x == 10)){
-//            return 70
-//        }
-//        else if ((minX+maxX)/2f>35 && (x==70)){
-//            return 130
-//        }
-//        else{
+        if ((minX+maxX)/2f<25 && (x==70)){
+            return 10
+        }
+        else if ((minX+maxX)/2f<25 && (x==130)){
             return 70
-//        }
+        }
+        else if ((minX+maxX)/2f>35 && (x == 10)){
+            return 70
+        }
+        else if ((minX+maxX)/2f>35 && (x==70)){
+            return 130
+        }
+        else{
+            return xx
+        }
 
     }
     fun xvaluescale(a: FloatArray): FloatArray {
