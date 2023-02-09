@@ -57,7 +57,11 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var createImage1: Boolean = false
     var createImage2: Boolean = false
     var createImage3: Boolean = false
-
+    var x:Int = 0
+    var y:Int = 0
+    var width:Int = 320
+    var height:Int = 240
+    var x_0:Int = 0
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "everex_tflite")
         channel.setMethodCallHandler(this)
@@ -150,8 +154,13 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     decodeBitmap = matrixBitmap(decodeBitmap, 1f, 1f, 180f)
                 }
 
+                if(deviceOrientation == "portraitUp"){
 
-                //decodeBitmap =Bitmap.createBitmap(decodeBitmap, x, y, width, height)
+                }
+                else{
+                    decodeBitmap =Bitmap.createBitmap(decodeBitmap, x, y, width, height)
+                }
+
 
 
                 inputImageBuffer!!.load(decodeBitmap)
@@ -196,7 +205,18 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         outputWidth,
                         numJoints
                     )
+                Log.e("positions",positions.toString())
 
+                if(deviceOrientation == "portraitUp"){
+
+                }
+                else{
+//                    x = maxOf((32/6*findMinMaxValues(positions)-90),0)
+//                    Log.e("xvalue",x.toString())
+                    x = findCenterValues(positions,x)
+                    width = 180
+                    xvaluescale(positions)
+                }
                 result.success(true)
             }
             "outPut" -> {
@@ -221,7 +241,40 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             }
         }
     }
+    fun findCenterValues(a: FloatArray,xx:Int): Int {
+        var minX = Float.MAX_VALUE
+        var maxX = Float.MIN_VALUE
 
+        for (i in a.indices step 2) {
+            val x = a[i]
+            if (x != 0.0f) {
+                minX = minOf(minX, x)
+                maxX = maxOf(maxX, x)
+            }
+        }
+//        if ((minX+maxX)/2f<25 && (x==70)){
+//            return 10
+//        }
+//        else if ((minX+maxX)/2f<25 && (x==130)){
+//            return 70
+//        }
+//        else if ((minX+maxX)/2f>35 && (x == 10)){
+//            return 70
+//        }
+//        else if ((minX+maxX)/2f>35 && (x==70)){
+//            return 130
+//        }
+//        else{
+            return 70
+//        }
+
+    }
+    fun xvaluescale(a: FloatArray): FloatArray {
+        for (i in a.indices step 2) {
+            a[i] = a[i]*width/320+30*(x)/160
+        }
+        return a
+    }
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }
