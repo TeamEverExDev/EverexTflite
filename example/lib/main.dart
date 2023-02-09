@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => const CameraView(
         title: 'test',
-        initialDirection: CameraLensDirection.back,
+        initialDirection: CameraLensDirection.front,
       ),
     ));
     setState(() {
