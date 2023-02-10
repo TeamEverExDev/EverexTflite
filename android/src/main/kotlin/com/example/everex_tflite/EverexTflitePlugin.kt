@@ -54,9 +54,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
     private val poseEstimationUtil: PoseEstimationUtil = PoseEstimationUtil()
 
-    var createImage1: Boolean = false
-    var createImage2: Boolean = false
-    var createImage3: Boolean = false
+    var createImage1: Boolean = true
+    var createImage2: Boolean = true
+    var createImage3: Boolean = true
     var x: Int = 70
     var y: Int = 0
     var width: Int = 240
@@ -140,7 +140,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 var rotation = 1
                 if (cameraLensDirection == "front" && deviceOrientation == "portraitUp") {
-                    Log.d("d", "여길 타고있나요")
                     decodeBitmap = matrixBitmap(decodeBitmap, -1f, 1f, 90f)
                 } else if (cameraLensDirection == "front" && deviceOrientation == "landscapeLeft") {
                     decodeBitmap = matrixBitmap(decodeBitmap, -1f, 1f, 0f)
@@ -200,7 +199,6 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         outputWidth,
                         numJoints
                     )
-                Log.e("positions", positions.toString())
 
                 if (deviceOrientation != "portraitUp") {
                     width = 240
