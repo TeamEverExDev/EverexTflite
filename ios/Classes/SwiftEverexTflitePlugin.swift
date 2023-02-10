@@ -199,7 +199,7 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         
         positions = Array<Float>()
         
-        for i in 0...16 {
+        for i in 0..<24 {
             var maxX = 0
             var maxY = 0
             var max : Float32 = 50.0
