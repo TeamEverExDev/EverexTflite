@@ -18,7 +18,7 @@ class PosePainter extends CustomPainter {
       ..color = Colors.red;
     List bodyPart = [];
 
-    for (int i = 0; i < 34; i += 2) {
+    for (int i = 0; i < 48; i += 2) {
       //draw dot
       if (i == 0) {
         canvas.drawCircle(
