@@ -238,7 +238,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
         for (i in a.indices step 2) {
             val x = a[i]
-            if (x != 0.0f) {
+            if (x > 15.0f) {
+                Log.e("sss",x.toString())
                 minX = minOf(minX, x)
                 maxX = maxOf(maxX, x)
                 sum += x
@@ -251,6 +252,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
             return 80
         }
         return 40
+//        return (sum/count*2).toInt()
     }
 
     fun xvaluescale(a: FloatArray): FloatArray {

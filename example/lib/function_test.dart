@@ -70,7 +70,7 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
       }
     }
 
-    EverexTflite.loadModel("assets/tflite/model_optimized.tflite");
+    EverexTflite.loadModel("assets/tflite/model_ver_v2.tflite");
   }
 
   @override
@@ -186,12 +186,12 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
         }).toList();
       }
 
-      print("높이" + image.height.toString());
-      print("넓이" + image.width.toString());
-
-      print(orientation.name);
-      print(_controller!.description.lensDirection.name);
-      print(_controller!.description.sensorOrientation);
+      // print("높이" + image.height.toString());
+      // print("넓이" + image.width.toString());
+      //
+      // print(orientation.name);
+      // print(_controller!.description.lensDirection.name);
+      // print(_controller!.description.sensorOrientation);
 
       if (busy == false) {
         busy = true;
@@ -207,7 +207,7 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
 
         if (runComplete ?? false) {
           List<double>? result = await EverexTflite.outPut();
-          print(result);
+          // print(result);
           functionTestStream.setPoseData(result!);
         }
 
