@@ -200,9 +200,9 @@ public class SwiftEverexTflitePlugin: NSObject, FlutterPlugin {
         positions = Array<Float>()
         
         for i in 0..<24 {
-            var maxX = 0
-            var maxY = 0
-            var max : Float32 = 50.0
+            var maxX = -1
+            var maxY = -1
+            var max : Float32 = 128.0
             
             for x in 0..<Model.output.width {
                 for y in 0..<Model.output.height {
@@ -355,7 +355,10 @@ func xvaluescale( a: [Float] ,width : Int, x: Int) -> [Float] {
     var temp : [Float] = a
     for i in stride(from: 0, to: a.count, by: 2) {
         //30 옆으로 얼마나 가느냐..?
-        temp[i] = temp[i] * Float(width) / 352 + 32 * Float(x) / 176
+        if (temp[i] > 0) {
+            temp[i] = temp[i] * Float(width) / 352 + 32 * Float(x) / 176
+        }
+   
     }
     return temp
 }
