@@ -255,7 +255,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
     fun xvaluescale(a: FloatArray): FloatArray {
         for (i in a.indices step 2) {
-            a[i] = a[i] * width / 320 + 30 * (x) / 160
+            if (a[i] > 0f) {
+                a[i] = a[i] * width / 320 + 30 * (x) / 160
+            }
         }
         return a
     }
