@@ -132,7 +132,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                         strides,
                         imageWidth,
                         imageHeight
-                    ), 320, 240, 100
+                    ), imageWidth, imageHeight, 100
                 )
 
 
