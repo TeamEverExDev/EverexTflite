@@ -201,7 +201,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     )
 
                 if (deviceOrientation != "portraitUp") {
-                    width = 240
+                    width = imageWidth
                     xvaluescale(positions)
                     x = findCenterValues(positions, x)
                 }
