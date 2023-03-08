@@ -61,6 +61,7 @@ class _CameraViewState extends State<CameraView> with AfterLayoutMixin {
     }
   }
 
+
   @override
   void initState() {
     super.initState();

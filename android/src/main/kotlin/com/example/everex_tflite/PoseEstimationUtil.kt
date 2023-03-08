@@ -13,7 +13,7 @@ class PoseEstimationUtil {
         for (i in 0 until numJoints) {
             var maxX = -1
             var maxY = -1
-            var max = 30f
+            var max = 0f
             // find keypoint coordinate through maximum values
             for (x in 0 until outputWidth) {
                 for (y in 0 until outputHeight) {

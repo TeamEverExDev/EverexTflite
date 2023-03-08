@@ -158,8 +158,8 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 if (deviceOrientation != "portraitUp") {
                     decodeBitmap = Bitmap.createBitmap(decodeBitmap, x, y, width, height)
                 }
-                Log.e("width",width.toString())
-                Log.e("height",height.toString())
+//                Log.e("width",width.toString())
+//                Log.e("height",height.toString())
                 decodeBitmap = Bitmap.createBitmap(decodeBitmap, x, y, width, height)
 
                 inputImageBuffer!!.load(decodeBitmap)
@@ -210,7 +210,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                     xvaluescale(positions)
                     x = findCenterValues(positions)
                 }
-
+                valuescale(positions2)
 //                width = 240
 //                height = 320
 //                xvaluescale(positions)
@@ -221,11 +221,19 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 y = (value2 +y)/2
                 width = (value3+width)/2
                 height = (value4+height)/2
+//                x = value1
+//                Log.e("x",x.toString())
+//                y = value2
+//                Log.e("y",y.toString())
+//                width = value3
+//                Log.e("width",width.toString())
+//                height = value4
+//                Log.e("width",height.toString())
 //                Log.e("width",width.toString())
 //                Log.e("height",height.toString())
-                valuescale(positions2)
-                Log.e("TAG", "positions = ${positions.contentToString()}")
-                Log.e("TAG", "positions2 = ${positions2.contentToString()}")
+
+//                Log.e("TAG", "positions = ${positions.contentToString()}")
+//                Log.e("TAG", "positions2 = ${positions2.contentToString()}")
                 result.success(true)
                 for (i in positions2.indices) {
                     positions[i] = (positions[i] + positions2[i]) / 2
@@ -295,21 +303,24 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         for (i in a.indices step 2) {
             val x = a[i]
 //            Log.e("sss",x.toString())
-            minX = minOf(minX, x)
-            maxX = maxOf(maxX, x)
-            sumX += x
-            countX += 1
+            if (x >0){
+                minX = minOf(minX, x)
+                maxX = maxOf(maxX, x)
+                sumX += x
+                countX += 1
+            }
         }
         for (i in a.indices step 2) {
             val y = a[i+1]
 //            Log.e("sss",y.toString())
-            minY = minOf(minX, y)
-            maxY = maxOf(maxX, y)
-            sumY += y
-            countY += 1
+            if (y > 0){
+                minY = minOf(minX, y)
+                maxY = maxOf(maxX, y)
+                sumY += y
+                countY += 1
+            }
         }
         if (countX>0 && countY>0){
-
 
         if (minX-(maxX-minX)/10>0f){
             value1 = (minX-(maxX-minX)/10)*4
@@ -323,17 +334,18 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         else {
             value2 = 0f
         }
-        if ((maxX-minX)*1.2+value1>60f){
+        if ((maxX-minX)*1.2+value1>60f||(maxX-minX)*1.2<1f){
             value3 = 240f - value1
         }
         else{
             value3 = (maxX-minX)*4.8f
+
         }
-        if ((maxY-minY)*1.2+value2>80f){
+        if ((maxY-minY)*1.2+value2>80f || (maxY-minY)*1.2<1f){
             value4 = 320f - value2
         }
         else{
-            value4 = (maxX-minX)*4.8f
+            value4 = (maxY-minY)*4.8f
         }
         }
         var value11 = value1.toInt()
