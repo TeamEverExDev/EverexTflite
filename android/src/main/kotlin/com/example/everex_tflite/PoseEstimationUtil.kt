@@ -11,9 +11,9 @@ class PoseEstimationUtil {
         val positions = FloatArray(numJoints * 2)
         // 각 조인트별 Heatmap 에서 가장 높은 score를 가지는 x, y 좌표 선택
         for (i in 0 until numJoints) {
-            var maxX = -1f
-            var maxY = -1f
-            var max = 128f
+            var maxX = -1
+            var maxY = -1
+            var max = 30f
             // find keypoint coordinate through maximum values
             for (x in 0 until outputWidth) {
                 for (y in 0 until outputHeight) {

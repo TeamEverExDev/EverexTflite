@@ -26,8 +26,10 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-
+//import kotlinx.coroutines.*
 /** EverexTflitePlugin */
+
+data class MyResult(val value1: Int, val value2: Int, val value3: Int, val value4: Int)
 class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
     private lateinit var channel: MethodChannel
@@ -43,9 +45,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var outputHeight: Int = 0
     private lateinit var heatmapOutput: Array<Array<Array<FloatArray>>>
     private lateinit var prevHeatmap: Array<Array<FloatArray>>
-    var numJoints: Int = 0
-    private var positions = FloatArray(numJoints * 2)
-
+    var numJoints: Int = 17
+    private var positions = FloatArray(numJoints * 2){0f}
+    private var positions2 = FloatArray(numJoints * 2){0f}
     private var inputImageBuffer: TensorImage? = null
     private var imageprocessorRot0: ImageProcessor? = null
     private var imageprocessorRot90: ImageProcessor? = null
@@ -57,10 +59,10 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
     var createImage1: Boolean = true
     var createImage2: Boolean = true
     var createImage3: Boolean = true
-    var x: Int = 70
+    var x: Int = 0
     var y: Int = 0
     var width: Int = 240
-    var height: Int = 240
+    var height: Int = 320
     var x_0: Int = 0
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "everex_tflite")
@@ -156,6 +158,9 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 if (deviceOrientation != "portraitUp") {
                     decodeBitmap = Bitmap.createBitmap(decodeBitmap, x, y, width, height)
                 }
+                Log.e("width",width.toString())
+                Log.e("height",height.toString())
+                decodeBitmap = Bitmap.createBitmap(decodeBitmap, x, y, width, height)
 
                 inputImageBuffer!!.load(decodeBitmap)
 
@@ -192,7 +197,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
 
                 interpreter?.run(byteBuffer, heatmapOutput)
 
-                positions =
+                positions2 =
                     poseEstimationUtil.getJointPositions(
                         heatmapOutput,
                         outputHeight,
@@ -203,9 +208,29 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
                 if (deviceOrientation != "portraitUp") {
                     width = 240
                     xvaluescale(positions)
-                    x = findCenterValues(positions, x)
+                    x = findCenterValues(positions)
                 }
+
+//                width = 240
+//                height = 320
+//                xvaluescale(positions)
+
+//                x = findCenterValues(positions, x)
+                val(value1,value2,value3,value4) = findCenterValues2(positions2)
+                x = (value1 +x)/2
+                y = (value2 +y)/2
+                width = (value3+width)/2
+                height = (value4+height)/2
+//                Log.e("width",width.toString())
+//                Log.e("height",height.toString())
+                valuescale(positions2)
+                Log.e("TAG", "positions = ${positions.contentToString()}")
+                Log.e("TAG", "positions2 = ${positions2.contentToString()}")
                 result.success(true)
+                for (i in positions2.indices) {
+                    positions[i] = (positions[i] + positions2[i]) / 2
+                }
+                Log.e("height",positions[0].toString())
             }
             "outPut" -> {
                 result.success(positions)
@@ -230,7 +255,7 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         }
     }
 
-    fun findCenterValues(a: FloatArray, xx: Int): Int {
+    fun findCenterValues(a: FloatArray): Int {
         var minX = Float.MAX_VALUE
         var maxX = Float.MIN_VALUE
         var sum = 0f
@@ -254,10 +279,88 @@ class EverexTflitePlugin : FlutterPlugin, MethodCallHandler {
         return 40
 //        return (sum/count*2).toInt()
     }
+    fun findCenterValues2(a: FloatArray): MyResult {
+        var minX = Float.MAX_VALUE
+        var maxX = Float.MIN_VALUE
+        var minY = Float.MAX_VALUE
+        var maxY = Float.MIN_VALUE
+        var sumX = 0f
+        var countX = 0
+        var sumY = 0f
+        var countY = 0
+        var value1 = 0f
+        var value2 = 0f
+        var value3 = 240f
+        var value4 = 320f
+        for (i in a.indices step 2) {
+            val x = a[i]
+//            Log.e("sss",x.toString())
+            minX = minOf(minX, x)
+            maxX = maxOf(maxX, x)
+            sumX += x
+            countX += 1
+        }
+        for (i in a.indices step 2) {
+            val y = a[i+1]
+//            Log.e("sss",y.toString())
+            minY = minOf(minX, y)
+            maxY = maxOf(maxX, y)
+            sumY += y
+            countY += 1
+        }
+        if (countX>0 && countY>0){
+
+
+        if (minX-(maxX-minX)/10>0f){
+            value1 = (minX-(maxX-minX)/10)*4
+        }
+        else {
+            value1 = 0f
+        }
+        if (minY-(maxY-minY)/10>0f){
+            value2 = (minY-(maxY-minY)/10)*4
+        }
+        else {
+            value2 = 0f
+        }
+        if ((maxX-minX)*1.2+value1>60f){
+            value3 = 240f - value1
+        }
+        else{
+            value3 = (maxX-minX)*4.8f
+        }
+        if ((maxY-minY)*1.2+value2>80f){
+            value4 = 320f - value2
+        }
+        else{
+            value4 = (maxX-minX)*4.8f
+        }
+        }
+        var value11 = value1.toInt()
+        var value22 = value2.toInt()
+        var value33 = value3.toInt()
+        var value44 = value4.toInt()
+
+//        Log.e("width",value3.toString())
+//        Log.e("height",value4.toString())
+        return MyResult(value11,value22,value33,value44)
+
+//        return (sum/count*2).toInt()
+    }
 
     fun xvaluescale(a: FloatArray): FloatArray {
         for (i in a.indices step 2) {
             a[i] = a[i] * width / 320 + 30 * (x) / 160
+        }
+        return a
+    }
+
+    fun valuescale(a: FloatArray): FloatArray {
+        for (i in a.indices step 2) {
+            a[i] = a[i] * width / 240 + x / 4
+        }
+        for (i in a.indices step 2) {
+            a[i+1] = a[i+1] * height / 320 + y / 4
         }
         return a
     }
